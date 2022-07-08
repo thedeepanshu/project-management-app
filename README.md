@@ -1,8 +1,8 @@
 # App Dashboard
-![project-management-app-homePage](public/images/homePage.png)
+![project-management-app-homePage](client/public/images/homePage.png)
 
 # Project Detail
-![project-management-app-projectDetailPage](public/images/projectDetailPage.png)
+![project-management-app-projectDetailPage](client/public/images/projectDetailPage.png)
 
 ## Project setup
 After cloning this app
