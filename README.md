@@ -24,4 +24,4 @@ You have to run `npm start` again and again if any change made for server code
 
 ### Run `npm run dev` for hot reloading for server code with the help of nodemon
 
-Open [http://http://localhost:5000/graphql](http://http://localhost:5000/graphql) to view CMS for graphql
+Open [http://localhost:5000/graphql](http://localhost:5000/graphql) to view CMS for graphql
