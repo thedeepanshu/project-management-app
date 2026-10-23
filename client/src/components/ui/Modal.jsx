@@ -20,7 +20,7 @@ export function Modal({ open, onClose, title, description, children, size = "md"
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className={`m-auto w-[calc(100%-2rem)] ${size === "sm" ? "max-w-md" : "max-w-xl"} rounded-3xl bg-surface p-0 text-ink shadow-lift ring-1 ring-line
+      className={`m-auto w-[calc(100%-2rem)] ${{ sm: "max-w-md", md: "max-w-xl", lg: "max-w-5xl" }[size]} rounded-3xl bg-surface p-0 text-ink shadow-lift ring-1 ring-line
         opacity-0 translate-y-3 scale-[0.98] transition-all transition-discrete duration-200 ease-out
         open:opacity-100 open:translate-y-0 open:scale-100
         starting:open:opacity-0 starting:open:translate-y-3 starting:open:scale-[0.98]

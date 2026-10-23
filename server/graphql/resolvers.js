@@ -1,8 +1,40 @@
 import Client from "../models/Client.js";
-import Project from "../models/Project.js";
+import Project, { MAX_ATTACHMENTS } from "../models/Project.js";
+import { destroyAsset, FOLDERS, isOwnAsset, transformUrl, uploadsEnabled } from "../services/cloudinary.js";
 import { assertObjectId, badInput, notFound, safe } from "./errors.js";
 
 const NEWEST_FIRST = { createdAt: -1, _id: -1 };
+
+const DOCUMENT_FORMATS = new Set([
+  "doc", "docx", "odt", "rtf", "txt", "md", "pages",
+  "xls", "xlsx", "ods", "csv", "numbers",
+  "ppt", "pptx", "odp", "key",
+]);
+
+function attachmentKind({ resourceType, format, name }) {
+  if (resourceType === "video") return "VIDEO";
+  if (resourceType === "image") return format === "pdf" ? "PDF" : "IMAGE";
+  const extension = (format || name.split(".").pop() || "").toLowerCase();
+  return DOCUMENT_FORMATS.has(extension) ? "DOCUMENT" : "OTHER";
+}
+
+function destroyProjectFiles(project) {
+  return Promise.all(project.attachments.map((file) => destroyAsset(file.publicId, file.resourceType)));
+}
+
+// Validates client photo fields: an uploaded avatar must be one of our own
+// Cloudinary files; anything else is treated as an external image URL.
+function normalizeAvatar(input) {
+  if (!("avatarUrl" in input) && !("avatarPublicId" in input)) return input;
+  const avatarUrl = input.avatarUrl?.trim() || null;
+  const avatarPublicId = input.avatarPublicId || null;
+  if (avatarPublicId && !isOwnAsset({ url: avatarUrl, publicId: avatarPublicId }, FOLDERS.avatar)) {
+    throw badInput("The uploaded photo couldn't be verified. Please upload it again.", {
+      avatarUrl: "Upload the photo again",
+    });
+  }
+  return { ...input, avatarUrl, avatarPublicId };
+}
 
 function startOfTodayUTC() {
   const now = new Date();
@@ -53,7 +85,21 @@ export const resolvers = {
     HIGH: "High",
   },
 
+  Attachment: {
+    kind: attachmentKind,
+    thumbnailUrl: (file) => {
+      const kind = attachmentKind(file);
+      if (kind === "IMAGE") return transformUrl(file.url, "c_fill,w_480,h_320,q_auto,f_auto");
+      if (kind === "PDF") return transformUrl(file.url, "c_fill,w_480,h_320,pg_1,q_auto", "jpg");
+      if (kind === "VIDEO") return transformUrl(file.url, "c_fill,w_480,h_320,so_0,q_auto", "jpg");
+      return null;
+    },
+    createdAt: (file) => createdAtOf(file).toISOString(),
+  },
+
   Client: {
+    avatarThumbUrl: (client) =>
+      client.avatarUrl ? transformUrl(client.avatarUrl, "c_fill,g_face,w_160,h_160,q_auto,f_auto") : null,
     projects: (client, _args, { loaders }) => loaders.projectsByClientId.load(client.id),
     projectCount: async (client, _args, { loaders }) =>
       (await loaders.projectsByClientId.load(client.id)).length,
@@ -124,19 +170,25 @@ export const resolvers = {
   },
 
   Mutation: {
-    addClient: safe((_parent, { input }) => Client.create(input)),
+    addClient: safe((_parent, { input }) => Client.create(normalizeAvatar(input))),
 
     updateClient: safe(async (_parent, { id, input }) => {
       const client = await findOrThrow(Client, id, "Client");
-      client.set(input);
-      return client.save();
+      const previousPhoto = client.avatarPublicId;
+      client.set(normalizeAvatar(input));
+      await client.save();
+      // The old uploaded photo is no longer used once a new one (or none) is saved.
+      if (previousPhoto && previousPhoto !== client.avatarPublicId) await destroyAsset(previousPhoto);
+      return client;
     }),
 
     deleteClient: safe(async (_parent, { id }) => {
       const client = await findOrThrow(Client, id, "Client");
+      const projects = await Project.find({ clientId: client._id });
       // Remove the client's projects first so no project is ever left orphaned.
       await Project.deleteMany({ clientId: client._id });
       await client.deleteOne();
+      await Promise.all([...projects.map(destroyProjectFiles), destroyAsset(client.avatarPublicId)]);
       return client;
     }),
 
@@ -162,6 +214,38 @@ export const resolvers = {
     deleteProject: safe(async (_parent, { id }) => {
       const project = await findOrThrow(Project, id, "Project");
       await project.deleteOne();
+      await destroyProjectFiles(project);
+      return project;
+    }),
+
+    addAttachments: safe(async (_parent, { projectId, attachments }) => {
+      if (!uploadsEnabled) throw badInput("File uploads aren't configured on this server.");
+      const project = await findOrThrow(Project, projectId, "Project");
+
+      if (project.attachments.length + attachments.length > MAX_ATTACHMENTS) {
+        throw badInput(
+          `A project can have at most ${MAX_ATTACHMENTS} files (this one has ${project.attachments.length}).`
+        );
+      }
+      for (const file of attachments) {
+        if (!isOwnAsset(file, FOLDERS.attachment) || !["image", "video", "raw"].includes(file.resourceType)) {
+          throw badInput(`“${file.name}” wasn't uploaded through Twillboard. Please upload it again.`);
+        }
+      }
+
+      project.attachments.push(...attachments);
+      return project.save();
+    }),
+
+    removeAttachment: safe(async (_parent, { projectId, attachmentId }) => {
+      const project = await findOrThrow(Project, projectId, "Project");
+      assertObjectId(attachmentId, "attachmentId");
+      const file = project.attachments.id(attachmentId);
+      if (!file) throw notFound("Attachment");
+
+      file.deleteOne();
+      await project.save();
+      await destroyAsset(file.publicId, file.resourceType);
       return project;
     }),
   },

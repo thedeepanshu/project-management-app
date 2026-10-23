@@ -8,17 +8,20 @@ const control =
 
 // Renders a label, the control (via render prop so it gets id/aria wiring),
 // an optional hint and an inline error message.
-export function Field({ label, error, hint, optional = false, children, className = "" }) {
+// `action` renders beside the label (e.g. an AI button).
+export function Field({ label, error, hint, optional = false, action, children, className = "" }) {
   const id = useId();
   const messageId = `${id}-message`;
   const describedBy = error || hint ? messageId : undefined;
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1.5 flex items-baseline justify-between text-sm font-medium">
-        {label}
-        {optional && <span className="text-xs font-normal text-subtle">Optional</span>}
-      </label>
+      <div className="mb-1.5 flex min-h-6 items-center justify-between gap-2">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+        {action ?? (optional && <span className="text-xs font-normal text-subtle">Optional</span>)}
+      </div>
       {children({ id, "aria-invalid": Boolean(error) || undefined, "aria-describedby": describedBy })}
       {error ? (
         <p id={messageId} className="mt-1.5 flex items-center gap-1.5 text-[13px] text-red-600 dark:text-red-400">

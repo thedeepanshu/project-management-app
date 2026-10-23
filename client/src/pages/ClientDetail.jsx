@@ -66,7 +66,7 @@ export default function ClientDetail() {
 
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-4">
-            <Avatar name={client.name} size="lg" />
+            <Avatar name={client.name} src={client.avatarThumbUrl} size="xl" />
             <div className="min-w-0">
               <h1 className="font-display text-3xl font-bold tracking-tight">{client.name}</h1>
               <p className="flex items-center gap-1.5 text-muted">

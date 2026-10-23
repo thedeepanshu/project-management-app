@@ -1,4 +1,5 @@
 import { useMutation } from "@apollo/client/react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { ADD_CLIENT, REFRESH_ALL, UPDATE_CLIENT } from "../../graphql/documents";
@@ -6,18 +7,22 @@ import { useForm } from "../../hooks/useForm";
 import { validateClient } from "../../lib/validation";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
+import { AvatarPicker } from "./AvatarPicker";
 
 export function ClientForm({ client, onDone, onCancel }) {
   const isEdit = Boolean(client);
-  const { values, errors, setField, handleSubmit, submitting } = useForm(
+  const { values, errors, setField, setFields, handleSubmit, submitting } = useForm(
     {
       name: client?.name ?? "",
       email: client?.email ?? "",
       phone: client?.phone ?? "",
       company: client?.company ?? "",
+      avatarUrl: client?.avatarUrl ?? null,
+      avatarPublicId: client?.avatarPublicId ?? null,
     },
     validateClient
   );
+  const [photoBusy, setPhotoBusy] = useState(false);
 
   const [addClient] = useMutation(ADD_CLIENT, { refetchQueries: REFRESH_ALL });
   const [updateClient] = useMutation(UPDATE_CLIENT, { refetchQueries: REFRESH_ALL });
@@ -28,6 +33,8 @@ export function ClientForm({ client, onDone, onCancel }) {
       email: form.email.trim(),
       phone: form.phone.trim(),
       company: form.company.trim() || null,
+      avatarUrl: form.avatarUrl,
+      avatarPublicId: form.avatarPublicId,
     };
     if (isEdit) {
       const { data } = await updateClient({ variables: { id: client.id, input } });
@@ -47,6 +54,13 @@ export function ClientForm({ client, onDone, onCancel }) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <AvatarPicker
+        name={values.name}
+        value={{ avatarUrl: values.avatarUrl, avatarPublicId: values.avatarPublicId }}
+        onChange={setFields}
+        onBusyChange={setPhotoBusy}
+        error={errors.avatarUrl}
+      />
       <Field label="Full name" error={errors.name}>
         {(a11y) => <Input {...a11y} {...bind("name")} placeholder="Ada Lovelace" autoComplete="name" autoFocus />}
       </Field>
@@ -68,7 +82,7 @@ export function ClientForm({ client, onDone, onCancel }) {
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" variant="brand" loading={submitting}>
+        <Button type="submit" variant="brand" loading={submitting} disabled={photoBusy}>
           {isEdit ? "Save changes" : "Add client"}
         </Button>
       </div>

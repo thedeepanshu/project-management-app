@@ -4,6 +4,8 @@ import { Toaster } from "sonner";
 
 import { useWorkspace } from "../../context/workspace";
 import { useTheme } from "../../hooks/useTheme";
+import { useAppConfig } from "../../hooks/useAppConfig";
+import { Assistant } from "../ai/Assistant";
 import { Logo } from "../brand/Logo";
 import { Button } from "../ui/Button";
 
@@ -37,6 +39,7 @@ function Kbd({ children }) {
 
 function Sidebar() {
   const { newProject } = useWorkspace();
+  const aiEnabled = useAppConfig().ai.enabled;
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface/70 backdrop-blur-xl lg:flex">
       <div className="bg-twill relative px-6 pt-6 pb-5 [mask-image:linear-gradient(black_60%,transparent)]">
@@ -79,7 +82,7 @@ function Sidebar() {
 
       <div className="space-y-3 border-t border-line px-6 py-5">
         <p className="flex items-center gap-2 text-xs text-subtle">
-          <Kbd>N</Kbd> project <Kbd>C</Kbd> client
+          <Kbd>N</Kbd> project <Kbd>C</Kbd> client {aiEnabled && <><Kbd>A</Kbd> ask</>}
         </p>
         <div className="flex items-center justify-between">
           <p className="text-xs text-subtle">Stitched with GraphQL</p>
@@ -142,7 +145,8 @@ export function AppLayout() {
         </div>
       </main>
       <ScrollRestoration />
-      <Toaster theme={theme} position="bottom-right" richColors closeButton mobileOffset={{ bottom: 96 }} />
+      <Assistant />
+      <Toaster theme={theme} position="top-center" richColors closeButton />
     </>
   );
 }

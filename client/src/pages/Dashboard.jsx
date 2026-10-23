@@ -146,7 +146,7 @@ function ProjectRow({ project, meta }) {
         to={`/projects/${project.id}`}
         className="-mx-3 flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-ink/4"
       >
-        <Avatar name={project.client?.name ?? "?"} size="sm" />
+        <Avatar name={project.client?.name ?? "?"} src={project.client?.avatarThumbUrl} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{project.name}</p>
           <p className="truncate text-xs text-subtle">{project.client?.name}</p>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                         to={`/clients/${client.id}`}
                         className="-mx-3 flex items-center gap-3 rounded-xl px-3 py-2.5 transition hover:bg-ink/4"
                       >
-                        <Avatar name={client.name} size="sm" />
+                        <Avatar name={client.name} src={client.avatarThumbUrl} size="sm" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium">{client.name}</p>
                           <p className="truncate text-xs text-subtle">{client.company ?? client.email}</p>

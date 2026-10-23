@@ -30,7 +30,11 @@ A calm, fast project manager for freelancers and small studios — built with Re
 - **Clients** — profiles with contact links, company, and a progress thread showing how their projects are going. Deleting a client tells you exactly how many projects go with them.
 - **Validation everywhere** — instant client-side checks that mirror the server's Mongoose rules, with server errors mapped back onto the right field.
 - **Light & dark themes** — follows your OS, remembers your choice, no flash on load.
-- **Keyboard shortcuts** — <kbd>N</kbd> new project, <kbd>C</kbd> new client.
+- **AI writing help** — *Enhance* polishes a project description (or drafts one from the title) and *Suggest* offers clearer titles. Text streams in live and is only applied when you click *Use this*.
+- **Twillboard Assistant** — a chat that answers questions about the app and your own projects and clients (“what's overdue?”, “what's due this week for Halcyon?”). Read-only by design.
+- **Attachments** — drag images, videos, PDFs and Office documents onto a project. Uploads go straight to Cloudinary with live progress; images, videos and PDFs preview in-app, Office files open in Microsoft's online viewer.
+- **Client photos** — upload from the device or paste an image URL; falls back to coloured initials.
+- **Keyboard shortcuts** — <kbd>N</kbd> new project, <kbd>C</kbd> new client, <kbd>A</kbd> ask the assistant.
 - **Responsive** — sidebar on desktop, top bar + floating tab bar on mobile.
 - **Accessible** — native `<dialog>` modals (focus trap, <kbd>Esc</kbd>), labelled controls, `aria-invalid` errors, reduced-motion support.
 
@@ -57,6 +61,8 @@ A calm, fast project manager for freelancers and small studios — built with Re
 | Build | Vite 8, ESLint 10 |
 | API | GraphQL Yoga on Express 5, schema-first SDL, DataLoader batching (no N+1 queries) |
 | Database | MongoDB Atlas via Mongoose 9 with schema validation, timestamps and indexes |
+| AI | Provider-agnostic layer: Google Gemini (free tier), Anthropic Claude or a local Ollama model, chosen in `.env` |
+| Files | Cloudinary signed direct uploads, on-the-fly thumbnails, automatic cleanup on delete |
 | Runtime | Node.js 24 LTS (built-in `--watch` and `--env-file`, no nodemon/dotenv) |
 
 ### Architecture notes
@@ -66,6 +72,10 @@ A calm, fast project manager for freelancers and small studios — built with Re
 - **Typed enums end to end.** `ProjectStatus` / `ProjectPriority` are GraphQL enums mapped to the strings stored in MongoDB.
 - **Safe errors.** Validation, bad IDs and duplicate emails become `BAD_USER_INPUT` errors with per-field messages; unexpected errors are masked in production.
 - **Fail fast.** The server validates its environment and database connection at startup with clear messages, and shuts down gracefully.
+- **Optional features degrade gracefully.** `GET /api/config` tells the client what's enabled; with no AI key or storage configured, those controls simply don't appear.
+- **Streaming AI.** `/api/ai/*` streams newline-delimited JSON so text appears word by word; a closed tab or *Stop* aborts the upstream request. Rate-limited per IP (12/min, 200/day) to protect the free quota.
+- **Uploads never touch the API.** The server signs a short-lived Cloudinary upload restricted to its own folder; the browser uploads directly, and GraphQL only accepts metadata for files in that folder.
+- **Prompt-injection aware.** The assistant reads a plain-text workspace snapshot fenced as data, and has no tools that can change anything.
 
 ## Getting started
 
@@ -102,6 +112,13 @@ Open **http://localhost:5173**. The GraphQL playground (GraphiQL) is at **http:/
 | `PORT` | | API port (default `5000`) |
 | `NODE_ENV` | | `production` disables GraphiQL and serves the built client |
 | `CLIENT_ORIGIN` | | Comma-separated origins allowed by CORS, if the app is hosted on a separate domain |
+| `GEMINI_API_KEY` | | Enables AI features. Free key at [aistudio.google.com](https://aistudio.google.com) |
+| `AI_PROVIDER` | | `gemini` (default when its key is set), `anthropic`, `ollama` or `none` |
+| `AI_MODEL` | | Override the model (defaults: `gemini-flash-latest`, `claude-opus-5-5`, `llama3.2`) |
+| `ANTHROPIC_API_KEY` / `OLLAMA_URL` | | For the Claude or local Ollama providers |
+| `CLOUDINARY_URL` | | Enables attachments and photo uploads. Free account at [cloudinary.com](https://cloudinary.com) |
+
+> **Cloudinary tip:** free accounts block PDF delivery by default. To preview PDFs, enable *Settings → Security → "Allow delivery of PDF and ZIP files"*.
 
 ## GraphQL API
 
@@ -128,18 +145,21 @@ Full schema: [`server/graphql/typeDefs.js`](server/graphql/typeDefs.js).
 
 ```
 ├── server/
+│   ├── ai/            # provider layer (Gemini / Claude / Ollama), prompts, workspace snapshot
 │   ├── config/        # env validation, MongoDB connection
 │   ├── graphql/       # typeDefs, resolvers, DataLoaders, error mapping
 │   ├── models/        # Mongoose schemas with validation
-│   ├── scripts/seed.js
+│   ├── routes/api.js  # /api: feature config, streaming AI, upload signatures
+│   ├── services/      # Cloudinary signing, thumbnails, cleanup
+│   ├── scripts/       # db:setup, seed
 │   └── index.js       # Express + GraphQL Yoga entry point
 └── client/
     ├── public/        # favicon, app icons, manifest, social image
     └── src/
-        ├── components/  # ui primitives, layout, projects, clients, brand
+        ├── components/  # ui primitives, layout, projects, clients, attachments, ai, brand
         ├── graphql/     # queries, mutations, fragments
-        ├── hooks/       # useForm, useTheme, useSetProjectStatus…
-        ├── lib/         # Apollo client, formatting, validation, enum metadata
+        ├── hooks/       # useForm, useTheme, useProjectAI, useAppConfig…
+        ├── lib/         # Apollo client, REST/streaming helpers, uploads, formatting, validation
         └── pages/       # Dashboard, Projects, ProjectDetail, Clients, ClientDetail
 ```
 

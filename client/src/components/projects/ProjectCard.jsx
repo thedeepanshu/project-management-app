@@ -1,4 +1,4 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Paperclip } from "lucide-react";
 import { Link } from "react-router";
 
 import { describeDue, isOverdue } from "../../lib/format";
@@ -51,13 +51,24 @@ export function ProjectCard({ project, showStatus = true, draggable = false, onD
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
         {project.client ? (
           <span className="flex min-w-0 items-center gap-2 text-sm">
-            <Avatar name={project.client.name} size="sm" />
+            <Avatar name={project.client.name} src={project.client.avatarThumbUrl} size="sm" />
             <span className="truncate text-muted">{project.client.name}</span>
           </span>
         ) : (
           <span className="text-sm text-subtle">No client</span>
         )}
-        <DueLabel project={project} />
+        <span className="flex shrink-0 items-center gap-3">
+          {project.attachments.length > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-xs font-medium text-muted"
+              title={`${project.attachments.length} attachment${project.attachments.length === 1 ? "" : "s"}`}
+            >
+              <Paperclip className="size-3.5" />
+              {project.attachments.length}
+            </span>
+          )}
+          <DueLabel project={project} />
+        </span>
       </div>
     </Link>
   );

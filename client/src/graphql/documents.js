@@ -21,6 +21,20 @@ export const PROJECT_FIELDS = gql`
       email
       phone
       company
+      avatarUrl
+      avatarThumbUrl
+    }
+    attachments {
+      id
+      name
+      kind
+      url
+      thumbnailUrl
+      format
+      bytes
+      width
+      height
+      createdAt
     }
   }
 `;
@@ -32,6 +46,9 @@ export const CLIENT_FIELDS = gql`
     email
     phone
     company
+    avatarUrl
+    avatarThumbUrl
+    avatarPublicId
     createdAt
     projectCount
     projects {
@@ -150,6 +167,24 @@ export const DELETE_CLIENT = gql`
       id
     }
   }
+`;
+
+export const ADD_ATTACHMENTS = gql`
+  mutation AddAttachments($projectId: ID!, $attachments: [AttachmentInput!]!) {
+    addAttachments(projectId: $projectId, attachments: $attachments) {
+      ...ProjectFields
+    }
+  }
+  ${PROJECT_FIELDS}
+`;
+
+export const REMOVE_ATTACHMENT = gql`
+  mutation RemoveAttachment($projectId: ID!, $attachmentId: ID!) {
+    removeAttachment(projectId: $projectId, attachmentId: $attachmentId) {
+      ...ProjectFields
+    }
+  }
+  ${PROJECT_FIELDS}
 `;
 
 // Active queries to refresh after any write, by operation name.

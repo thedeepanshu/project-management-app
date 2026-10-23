@@ -32,6 +32,14 @@ const ClientSchema = new mongoose.Schema(
       trim: true,
       maxlength: [80, "Company name must be at most 80 characters"],
     },
+    // Either an uploaded Cloudinary image (avatarPublicId set) or any image URL.
+    avatarUrl: {
+      type: String,
+      trim: true,
+      maxlength: [2048, "Image URL is too long"],
+      match: [/^https?:\/\/\S+$/i, "Image URL must start with http:// or https://"],
+    },
+    avatarPublicId: { type: String },
   },
   { timestamps: true }
 );

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+import { AttachmentsCard } from "../components/attachments/AttachmentsCard";
 import { DueLabel } from "../components/projects/ProjectCard";
 import { Avatar } from "../components/ui/Avatar";
 import { OverdueBadge, PriorityBadge, StatusBadge } from "../components/ui/Badges";
@@ -151,6 +152,8 @@ export default function ProjectDetail() {
             <p className="leading-relaxed whitespace-pre-line">{project.description}</p>
           </Card>
 
+          <AttachmentsCard project={project} />
+
           <Card className="p-6">
             <dl className="grid gap-5 sm:grid-cols-3">
               <Detail icon={CalendarDays} label="Due date">
@@ -180,7 +183,7 @@ export default function ProjectDetail() {
             {client ? (
               <div className="relative">
                 <Link to={`/clients/${client.id}`} className="group flex items-center gap-3">
-                  <Avatar name={client.name} size="lg" />
+                  <Avatar name={client.name} src={client.avatarThumbUrl} size="lg" />
                   <div className="min-w-0">
                     <p className="truncate font-display text-lg font-bold group-hover:text-twill-600 dark:group-hover:text-twill-300">
                       {client.name}

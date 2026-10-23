@@ -23,9 +23,13 @@
   "author": "Deepanshu Saini",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.2.0",
+    "@google/genai": "^2.31.0",
+    "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "dataloader": "^2.2.3",
     "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
     "graphql": "^17.0.2",
     "graphql-yoga": "^6.0.1",
     "mongoose": "^9.11.3"

@@ -11,18 +11,23 @@ export function useForm(initialValues, validate) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  function setField(field, value) {
-    const next = { ...values, [field]: value };
+  /** Updates several fields at once (one render, no stale values). */
+  function setFields(patch) {
+    const next = { ...values, ...patch };
     setValues(next);
     if (submitted) {
       setErrors(validate(next));
-    } else if (errors[field]) {
+    } else if (Object.keys(patch).some((field) => errors[field])) {
       setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
+        const remaining = { ...prev };
+        for (const field of Object.keys(patch)) delete remaining[field];
+        return remaining;
       });
     }
+  }
+
+  function setField(field, value) {
+    setFields({ [field]: value });
   }
 
   const handleSubmit = (onValid) => async (event) => {
@@ -44,5 +49,5 @@ export function useForm(initialValues, validate) {
     }
   };
 
-  return { values, errors, setField, handleSubmit, submitting };
+  return { values, errors, setField, setFields, handleSubmit, submitting };
 }

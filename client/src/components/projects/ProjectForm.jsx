@@ -3,10 +3,14 @@ import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 import { ADD_PROJECT, GET_CLIENTS, REFRESH_ALL, UPDATE_PROJECT } from "../../graphql/documents";
+import { useAppConfig } from "../../hooks/useAppConfig";
 import { useForm } from "../../hooks/useForm";
+import { useDescriptionAI, useTitleAI } from "../../hooks/useProjectAI";
 import { toDateInput } from "../../lib/format";
 import { PRIORITIES, STATUSES } from "../../lib/meta";
 import { validateProject } from "../../lib/validation";
+import { AIButton } from "../ai/AIButton";
+import { DescriptionSuggestion } from "../ai/DescriptionSuggestion";
 import { PriorityIcon } from "../ui/Badges";
 import { Button } from "../ui/Button";
 import { Field, Input, Select, Textarea } from "../ui/Field";
@@ -25,6 +29,9 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
   const isEdit = Boolean(project);
   const { data, loading } = useQuery(GET_CLIENTS);
   const clients = data?.clients ?? [];
+  const aiEnabled = useAppConfig().ai.enabled;
+  const descriptionAI = useDescriptionAI();
+  const titleAI = useTitleAI();
 
   const { values, errors, setField, handleSubmit, submitting } = useForm(
     {
@@ -85,29 +92,123 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <Field label="Project name" error={errors.name}>
-        {(a11y) => (
-          <Input
-            {...a11y}
-            value={values.name}
-            onChange={(e) => setField("name", e.target.value)}
-            placeholder="Website redesign"
-            autoFocus
-          />
+      <div>
+        <Field
+          label="Project name"
+          error={errors.name ?? titleAI.error}
+          action={
+            aiEnabled && (
+              <AIButton
+                loading={titleAI.loading}
+                disabled={!values.name.trim()}
+                title={values.name.trim() ? "Suggest clearer titles" : "Type a title first"}
+                onClick={() => titleAI.suggest({ name: values.name, description: values.description })}
+              >
+                Suggest
+              </AIButton>
+            )
+          }
+        >
+          {(a11y) => (
+            <Input
+              {...a11y}
+              value={values.name}
+              onChange={(e) => setField("name", e.target.value)}
+              placeholder="Website redesign"
+              autoFocus
+            />
+          )}
+        </Field>
+        {titleAI.titles.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-2" aria-live="polite">
+            {titleAI.titles.map((title) => (
+              <button
+                key={title}
+                type="button"
+                onClick={() => {
+                  setField("name", title);
+                  titleAI.clear();
+                }}
+                className="cursor-pointer rounded-full bg-twill-500/8 px-3 py-1 text-sm ring-1 ring-twill-500/25 transition hover:bg-twill-500/15"
+                title="Use this title"
+              >
+                {title}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={titleAI.clear}
+              className="cursor-pointer text-xs text-subtle hover:text-ink"
+            >
+              Dismiss
+            </button>
+          </div>
         )}
-      </Field>
+      </div>
 
-      <Field label="Description" error={errors.description} hint={`${values.description.length}/2000`}>
-        {(a11y) => (
-          <Textarea
-            {...a11y}
-            value={values.description}
-            onChange={(e) => setField("description", e.target.value)}
-            placeholder="What does done look like?"
-            maxLength={2000}
+      <div>
+        <Field
+          label="Description"
+          error={errors.description}
+          hint={`${values.description.length}/2000`}
+          action={
+            aiEnabled && (
+              <AIButton
+                loading={descriptionAI.suggestion?.streaming}
+                disabled={!values.name.trim() && !values.description.trim()}
+                title={
+                  values.description.trim()
+                    ? "Polish the wording of this description"
+                    : values.name.trim()
+                      ? "Write a first draft from the project name"
+                      : "Type a project name or description first"
+                }
+                onClick={() =>
+                  descriptionAI.run({
+                    name: values.name,
+                    description: values.description,
+                    clientId: values.clientId,
+                    priority: values.priority,
+                    dueDate: values.dueDate,
+                  })
+                }
+              >
+                {values.description.trim() ? "Enhance" : "Draft from title"}
+              </AIButton>
+            )
+          }
+        >
+          {(a11y) => (
+            <Textarea
+              {...a11y}
+              value={values.description}
+              onChange={(e) => setField("description", e.target.value)}
+              placeholder="What does done look like?"
+              maxLength={2000}
+            />
+          )}
+        </Field>
+        {descriptionAI.suggestion && (
+          <DescriptionSuggestion
+            {...descriptionAI.suggestion}
+            onAccept={() => {
+              setField("description", descriptionAI.suggestion.text.slice(0, 2000));
+              descriptionAI.clear();
+            }}
+            onRetry={() =>
+              descriptionAI.run({
+                name: values.name,
+                description: values.description,
+                clientId: values.clientId,
+                priority: values.priority,
+                dueDate: values.dueDate,
+              })
+            }
+            onStop={descriptionAI.stop}
+            onDiscard={descriptionAI.clear}
           />
         )}
-      </Field>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Client" error={errors.clientId}>

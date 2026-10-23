@@ -27,7 +27,7 @@ export function ClientCard({ client, onEdit, onDelete }) {
   return (
     <article className="group relative flex flex-col rounded-2xl bg-surface p-5 shadow-soft ring-1 ring-line transition duration-200 hover:-translate-y-0.5 hover:shadow-lift hover:ring-line-strong">
       <div className="flex items-start gap-3">
-        <Avatar name={client.name} />
+        <Avatar name={client.name} src={client.avatarThumbUrl} />
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-display text-[17px] font-semibold tracking-tight">
             {/* Stretched link: the whole card is clickable, action buttons sit above it. */}

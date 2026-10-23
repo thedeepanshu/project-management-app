@@ -12,12 +12,40 @@ export const typeDefs = /* GraphQL */ `
     HIGH
   }
 
+  enum AttachmentKind {
+    IMAGE
+    VIDEO
+    PDF
+    DOCUMENT
+    OTHER
+  }
+
+  type Attachment {
+    id: ID!
+    name: String!
+    kind: AttachmentKind!
+    "Original file URL."
+    url: String!
+    "Small preview image (images, videos and PDFs), or null."
+    thumbnailUrl: String
+    format: String
+    bytes: Int!
+    width: Int
+    height: Int
+    createdAt: String!
+  }
+
   type Client {
     id: ID!
     name: String!
     email: String!
     phone: String!
     company: String
+    "Client photo: an uploaded image or an external image URL."
+    avatarUrl: String
+    "Square, face-cropped version of avatarUrl for display (same as avatarUrl for external URLs)."
+    avatarThumbUrl: String
+    avatarPublicId: String
     projects: [Project!]!
     projectCount: Int!
     "ISO-8601 timestamp."
@@ -35,6 +63,7 @@ export const typeDefs = /* GraphQL */ `
     "True when the due date has passed and the project is not completed."
     isOverdue: Boolean!
     client: Client
+    attachments: [Attachment!]!
     createdAt: String!
     updatedAt: String!
   }
@@ -66,6 +95,22 @@ export const typeDefs = /* GraphQL */ `
     email: String!
     phone: String!
     company: String
+    "Pass null to remove the photo."
+    avatarUrl: String
+    "Set when avatarUrl is an image uploaded through /api/uploads."
+    avatarPublicId: String
+  }
+
+  "Metadata Cloudinary returns after a direct upload."
+  input AttachmentInput {
+    url: String!
+    publicId: String!
+    resourceType: String!
+    format: String
+    name: String!
+    bytes: Int!
+    width: Int
+    height: Int
   }
 
   input AddProjectInput {
@@ -96,5 +141,9 @@ export const typeDefs = /* GraphQL */ `
     addProject(input: AddProjectInput!): Project!
     updateProject(id: ID!, input: UpdateProjectInput!): Project!
     deleteProject(id: ID!): Project!
+    "Saves files already uploaded to Cloudinary onto a project."
+    addAttachments(projectId: ID!, attachments: [AttachmentInput!]!): Project!
+    "Removes a file from the project and deletes it from storage."
+    removeAttachment(projectId: ID!, attachmentId: ID!): Project!
   }
 `;

@@ -10,6 +10,9 @@ import { connectDB, disconnectDB } from "./config/db.js";
 import env from "./config/env.js";
 import { createLoaders } from "./graphql/loaders.js";
 import { schema } from "./graphql/schema.js";
+import { api } from "./routes/api.js";
+import { ai } from "./ai/provider.js";
+import { uploadsEnabled } from "./services/cloudinary.js";
 
 const clientDist = fileURLToPath(new URL("../client/dist", import.meta.url));
 
@@ -24,6 +27,8 @@ const yoga = createYoga({
 const app = express();
 
 app.disable("x-powered-by");
+// Hosts like Render/Railway sit behind one proxy; trust it so rate limits see real client IPs.
+if (env.isProduction) app.set("trust proxy", 1);
 app.use(cors({ origin: env.clientOrigins }));
 
 app.get("/health", (_req, res) => {
@@ -32,6 +37,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use(yoga.graphqlEndpoint, yoga);
+app.use("/api", api);
 
 // In production, the API also serves the built React app (single deployable).
 if (env.isProduction && existsSync(clientDist)) {
@@ -43,6 +49,8 @@ await connectDB();
 
 const server = app.listen(env.port, () => {
   console.log(styleText("magenta", `✔ API ready at http://localhost:${env.port}/graphql`));
+  console.log(ai ? `✔ AI: ${ai.provider} (${ai.model})` : "○ AI: off (set GEMINI_API_KEY to enable)");
+  console.log(uploadsEnabled ? "✔ Uploads: Cloudinary" : "○ Uploads: off (set CLOUDINARY_URL to enable)");
 });
 
 async function shutdown(signal) {
