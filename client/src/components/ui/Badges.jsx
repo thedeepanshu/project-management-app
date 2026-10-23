@@ -1,4 +1,4 @@
-import { AlarmClock } from "lucide-react";
+import { AlarmClock, Flag } from "lucide-react";
 
 import { PRIORITY, STATUS } from "../../lib/meta";
 
@@ -14,24 +14,17 @@ export function StatusBadge({ status }) {
   );
 }
 
-// Signal bars: Low = 1, Medium = 2, High = 3 filled. The shape alone tells the
-// levels apart (colour-blind safe); colour reinforces it.
+// Flag that fills up with urgency: Low = outline, Medium = half-tint, High = solid.
+const FLAG_FILL_OPACITY = { LOW: 0, MEDIUM: 0.35, HIGH: 1 };
+
 export function PriorityIcon({ priority, className = "size-3.5" }) {
-  const { rank } = PRIORITY[priority];
   return (
-    <svg viewBox="0 0 16 16" className={className} fill="currentColor" aria-hidden="true">
-      {[5, 9, 13].map((height, index) => (
-        <rect
-          key={height}
-          x={1.5 + index * 5}
-          y={14.5 - height}
-          width="3"
-          height={height}
-          rx="1"
-          opacity={index < rank ? 1 : 0.22}
-        />
-      ))}
-    </svg>
+    <Flag
+      className={className}
+      fill="currentColor"
+      fillOpacity={FLAG_FILL_OPACITY[priority]}
+      aria-hidden="true"
+    />
   );
 }
 
