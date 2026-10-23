@@ -76,6 +76,7 @@ git clone https://github.com/thedeepanshu/project-management-app.git
 cd project-management-app
 npm install                 # installs the API and the client (npm workspaces)
 cp .env.example .env        # then set MONGO_URI
+npm run db:setup            # creates collections & indexes
 npm run seed                # optional: demo clients & projects
 npm run dev                 # API on :5000 + app on :5173
 ```
@@ -89,6 +90,7 @@ Open **http://localhost:5173**. The GraphQL playground (GraphiQL) is at **http:/
 | `npm run dev` | Runs the API (auto-restarts on changes) and the Vite dev server together |
 | `npm run build` | Builds the client into `client/dist` |
 | `npm start` | Starts the API; with `NODE_ENV=production` it also serves the built app |
+| `npm run db:setup` | Creates the collections and indexes (safe to re-run) |
 | `npm run seed` | Adds demo data to an empty database (`npm run seed -- --reset` wipes it first) |
 | `npm run lint` | Lints the client |
 
