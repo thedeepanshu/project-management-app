@@ -7,10 +7,19 @@ import { useForm } from "../../hooks/useForm";
 import { toDateInput } from "../../lib/format";
 import { PRIORITIES, STATUSES } from "../../lib/meta";
 import { validateProject } from "../../lib/validation";
+import { PriorityIcon } from "../ui/Badges";
 import { Button } from "../ui/Button";
 import { Field, Input, Select, Textarea } from "../ui/Field";
 import { Segmented } from "../ui/Segmented";
 import { Skeleton } from "../ui/States";
+
+// Icon components for the priority picker, one per level.
+const PRIORITY_ICONS = Object.fromEntries(
+  PRIORITIES.map(({ value, color }) => [
+    value,
+    ({ className }) => <PriorityIcon priority={value} className={`${className} ${color}`} />,
+  ])
+);
 
 export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, onCancel, onNewClient }) {
   const isEdit = Boolean(project);
@@ -141,7 +150,7 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
           className="w-full"
           value={values.priority}
           onChange={(value) => setField("priority", value)}
-          options={PRIORITIES.map((p) => ({ value: p.value, label: p.label }))}
+          options={PRIORITIES.map((p) => ({ value: p.value, label: p.label, icon: PRIORITY_ICONS[p.value] }))}
         />
       </div>
 
