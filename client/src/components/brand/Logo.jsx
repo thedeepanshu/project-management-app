@@ -1,8 +1,9 @@
 import { useId } from "react";
 
-// The Twillboard mark: three twill "wales" — the diagonal ribs that define a
-// twill weave — rising from bottom-left to top-right like progress. The long
-// coral rib is the active project thread. Keep in sync with public/favicon.svg.
+// The Twillboard mark: a bold "T" cut from twill fabric. Diagonal cuts follow
+// twill's signature rib (bottom-left → top-right); the coral band is the one
+// thread you're working on, running through the heart of the board.
+// Keep in sync with public/favicon.svg.
 export function LogoMark({ className = "size-8" }) {
   const id = useId();
   return (
@@ -12,12 +13,19 @@ export function LogoMark({ className = "size-8" }) {
           <stop stopColor="#7b68ff" />
           <stop offset="1" stopColor="#3d2ea6" />
         </linearGradient>
+        <clipPath id={`${id}-t`}>
+          <rect x="6" y="7" width="20" height="7" rx="1.8" />
+          <rect x="12.5" y="7" width="7" height="18.5" rx="1.8" />
+        </clipPath>
+        <mask id={`${id}-cuts`}>
+          <rect width="32" height="32" fill="#fff" />
+          <path d="M-19 36L36-19M-11 36L36-11M-3 36L36-3M5 36L36 5" stroke="#000" strokeWidth="1.4" />
+        </mask>
       </defs>
       <rect width="32" height="32" rx="8" fill={`url(#${id}-bg)`} />
-      <g strokeWidth="5.4" strokeLinecap="round" fill="none">
-        <path d="M7 17.5L14.5 10" stroke="#fff" />
-        <path d="M8.5 23.5L23.5 8.5" stroke="#ff8f6d" />
-        <path d="M17.5 25L25 17.5" stroke="#fff" />
+      <g clipPath={`url(#${id}-t)`} mask={`url(#${id}-cuts)`}>
+        <rect width="32" height="32" fill="#fff" />
+        <path d="M-7 36L36-7" stroke="#ff8f6d" strokeWidth="4.26" />
       </g>
     </svg>
   );

@@ -4,7 +4,18 @@
       <stop stop-color="#7b68ff"/>
       <stop offset="1" stop-color="#3d2ea6"/>
     </linearGradient>
+    <clipPath id="t">
+      <rect x="6" y="7" width="20" height="7" rx="1.8"/>
+      <rect x="12.5" y="7" width="7" height="18.5" rx="1.8"/>
+    </clipPath>
+    <mask id="cuts">
+      <rect width="32" height="32" fill="#fff"/>
+      <path d="M-19 36L36-19M-11 36L36-11M-3 36L36-3M5 36L36 5" stroke="#000" stroke-width="1.4"/>
+    </mask>
   </defs>
   <rect width="32" height="32" rx="8" fill="url(#bg)"/>
-  <g stroke-width="5.4" stroke-linecap="round" fill="none"><path d="M7 17.5L14.5 10" stroke="#fff"/><path d="M8.5 23.5L23.5 8.5" stroke="#ff8f6d"/><path d="M17.5 25L25 17.5" stroke="#fff"/></g>
+  <g clip-path="url(#t)" mask="url(#cuts)">
+    <rect width="32" height="32" fill="#fff"/>
+    <path d="M-7 36L36-7" stroke="#ff8f6d" stroke-width="4.26"/>
+  </g>
 </svg>

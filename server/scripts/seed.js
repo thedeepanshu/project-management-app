@@ -1,4 +1,4 @@
-// Seeds the database with demo clients and projects.
+// Seeds the database with a realistic sample portfolio of clients and projects.
 //   npm run seed            → only seeds when the database is empty
 //   npm run seed -- --reset → wipes clients & projects first, then seeds
 
@@ -16,32 +16,54 @@ const daysFromNow = (days) => {
 };
 
 const clients = [
-  { name: "Aarav Mehta", email: "aarav@northwind.studio", phone: "+91 98765 43210", company: "Northwind Studio" },
-  { name: "Sofia Laurent", email: "sofia@maisonbleu.fr", phone: "+33 6 12 34 56 78", company: "Maison Bleu" },
-  { name: "Kenji Watanabe", email: "kenji@kumo.dev", phone: "+81 90 1234 5678", company: "Kumo Labs" },
-  { name: "Amara Okafor", email: "amara@greenleaf.co", phone: "+234 803 123 4567", company: "Greenleaf Co." },
-  { name: "Lucas Ferreira", email: "lucas@trilha.app", phone: "+55 11 91234 5678", company: "Trilha" },
+  { key: "northwind", name: "Aarav Mehta", email: "aarav.mehta@northwindstudio.com", phone: "+91 98201 44718", company: "Northwind Studio" },
+  { key: "maison", name: "Sofia Laurent", email: "sofia@maisonbleu.fr", phone: "+33 6 48 21 90 37", company: "Maison Bleu" },
+  { key: "kumo", name: "Kenji Watanabe", email: "k.watanabe@kumolabs.io", phone: "+81 90 3318 2276", company: "Kumo Labs" },
+  { key: "greenleaf", name: "Amara Okafor", email: "amara.okafor@greenleafenergy.co", phone: "+234 803 512 6604", company: "Greenleaf Energy" },
+  { key: "trilha", name: "Lucas Ferreira", email: "lucas@trilha.app", phone: "+55 11 97412 3389", company: "Trilha Outdoors" },
+  { key: "halcyon", name: "Emily Carter", email: "emily.carter@halcyonhealth.com", phone: "+1 (415) 555-0142", company: "Halcyon Health" },
+  { key: "fintrail", name: "Rohan Kapoor", email: "rohan@fintrail.in", phone: "+91 99104 87213", company: "Fintrail Capital" },
+  { key: "atelier", name: "Isabella Rossi", email: "isabella@ateliernove.it", phone: "+39 347 812 5590", company: "Atelier Nove" },
 ];
 
+// due: days from today (negative = past). createdAgo: days since the project started.
 const projects = [
-  { client: 0, name: "Brand identity refresh", status: "Completed", priority: "Medium", due: -12,
-    description: "New logo system, colour palette and typography guidelines for Northwind's 10-year anniversary." },
-  { client: 0, name: "Marketing site rebuild", status: "In Progress", priority: "High", due: 9,
-    description: "Rebuild the marketing site on a headless CMS with a component library shared with the product team." },
-  { client: 1, name: "E-commerce storefront", status: "In Progress", priority: "High", due: 4,
-    description: "Shopify storefront with custom product configurator and multi-currency checkout for the EU launch." },
-  { client: 1, name: "Lookbook photoshoot portal", status: "Not Started", priority: "Low", due: 30,
-    description: "Private portal where stylists can review, tag and approve images from seasonal photoshoots." },
-  { client: 2, name: "Realtime analytics dashboard", status: "In Progress", priority: "Medium", due: -3,
-    description: "Streaming dashboard for edge-device telemetry with alerting thresholds and CSV export." },
-  { client: 2, name: "Developer docs site", status: "Completed", priority: "Low", due: -20,
-    description: "Versioned API reference and guides with live code samples and full-text search." },
-  { client: 3, name: "Carbon tracker mobile app", status: "Not Started", priority: "High", due: 21,
-    description: "Cross-platform app that estimates a household's monthly footprint and suggests swaps." },
-  { client: 4, name: "Trail booking platform", status: "In Progress", priority: "Medium", due: 14,
-    description: "Booking flow for guided hikes with guide availability, waivers and group payments." },
-  { client: 4, name: "SEO & performance audit", status: "Not Started", priority: "Medium", due: null,
-    description: "Core Web Vitals audit, structured data and an improvement roadmap ranked by impact." },
+  { client: "northwind", name: "Brand identity system", status: "Completed", priority: "Medium", due: -24, createdAgo: 70,
+    description: "Logo suite, colour palette, typography scale and a 40-page brand guidelines document for Northwind's ten-year anniversary rebrand." },
+  { client: "northwind", name: "Marketing website rebuild", status: "In Progress", priority: "High", due: 9, createdAgo: 34,
+    description: "Rebuild the marketing site on a headless CMS with a shared component library, improved Core Web Vitals and localisation for three markets." },
+  { client: "maison", name: "E-commerce storefront", status: "In Progress", priority: "High", due: 4, createdAgo: 41,
+    description: "Shopify Plus storefront with a custom product configurator, multi-currency checkout and Klaviyo flows ahead of the EU spring launch." },
+  { client: "maison", name: "Lookbook approval portal", status: "Not Started", priority: "Low", due: 38, createdAgo: 6,
+    description: "Private portal where stylists review, tag and approve imagery from seasonal photoshoots, with comments and version history." },
+  { client: "kumo", name: "Realtime telemetry dashboard", status: "In Progress", priority: "High", due: -3, createdAgo: 52,
+    description: "Streaming dashboard for 12,000 edge devices with anomaly alerts, configurable thresholds and CSV/Parquet export for the data team." },
+  { client: "kumo", name: "Developer documentation hub", status: "Completed", priority: "Low", due: -31, createdAgo: 88,
+    description: "Versioned API reference and integration guides with live code samples, full-text search and an OpenAPI-driven changelog." },
+  { client: "kumo", name: "SDK onboarding flow", status: "Not Started", priority: "Medium", due: 27, createdAgo: 3,
+    description: "Interactive first-run experience that takes developers from API key to first successful device event in under five minutes." },
+  { client: "greenleaf", name: "Carbon footprint mobile app", status: "In Progress", priority: "High", due: 18, createdAgo: 29,
+    description: "React Native app that estimates a household's monthly footprint from energy bills and suggests personalised, measurable swaps." },
+  { client: "greenleaf", name: "Investor pitch deck", status: "Completed", priority: "High", due: -12, createdAgo: 26,
+    description: "Series A narrative, market sizing and impact metrics designed into a 22-slide deck with a matching one-page executive summary." },
+  { client: "trilha", name: "Trail booking platform", status: "In Progress", priority: "Medium", due: 14, createdAgo: 45,
+    description: "Booking flow for guided hikes covering guide availability, digital waivers, group payments and automated weather notices." },
+  { client: "trilha", name: "SEO & performance audit", status: "Not Started", priority: "Medium", due: null, createdAgo: 2,
+    description: "Technical SEO, structured data and Core Web Vitals audit with an improvement roadmap ranked by traffic impact and effort." },
+  { client: "halcyon", name: "Patient intake redesign", status: "In Progress", priority: "High", due: 6, createdAgo: 38,
+    description: "Accessible, HIPAA-compliant digital intake replacing paper forms across 14 clinics, cutting average check-in time by half." },
+  { client: "halcyon", name: "Clinician scheduling tool", status: "Not Started", priority: "Medium", due: 45, createdAgo: 5,
+    description: "Shift planning for 300+ clinicians with availability preferences, coverage rules and one-click swap requests." },
+  { client: "halcyon", name: "Accessibility compliance review", status: "Completed", priority: "Medium", due: -8, createdAgo: 33,
+    description: "WCAG 2.2 AA audit of the patient portal with remediation tickets, screen-reader testing and a sign-off report." },
+  { client: "fintrail", name: "Portfolio analytics dashboard", status: "In Progress", priority: "Medium", due: 21, createdAgo: 19,
+    description: "Interactive dashboard for advisors showing allocation drift, risk exposure and performance against benchmarks." },
+  { client: "fintrail", name: "KYC onboarding flow", status: "Not Started", priority: "High", due: 11, createdAgo: 8,
+    description: "Mobile-first identity verification with document capture, liveness checks and automated risk scoring for new investors." },
+  { client: "atelier", name: "Product photography CMS", status: "Completed", priority: "Low", due: -17, createdAgo: 60,
+    description: "Lightweight CMS for managing product shoots, retouching status and export presets across 1,200 SKUs." },
+  { client: "atelier", name: "Spring collection microsite", status: "In Progress", priority: "Medium", due: 2, createdAgo: 16,
+    description: "Editorial microsite with scroll-driven storytelling, shoppable looks and a waitlist for the limited spring collection." },
 ];
 
 await connectDB();
@@ -55,13 +77,28 @@ try {
     process.exit(0);
   }
 
-  const createdClients = await Client.insertMany(clients);
+  // Clients joined over the past few months, oldest first.
+  const createdClients = await Client.insertMany(
+    clients.map(({ key: _key, ...client }, index) => ({
+      ...client,
+      createdAt: daysFromNow(-(100 - index * 9)),
+    })),
+    { timestamps: false }
+  );
+  const clientIdByKey = Object.fromEntries(clients.map((client, index) => [client.key, createdClients[index]._id]));
+
   await Project.insertMany(
-    projects.map(({ client, due, ...project }) => ({
-      ...project,
-      clientId: createdClients[client]._id,
-      dueDate: due === null ? undefined : daysFromNow(due),
-    }))
+    projects.map(({ client, due, createdAgo, ...project }) => {
+      const createdAt = daysFromNow(-createdAgo);
+      return {
+        ...project,
+        clientId: clientIdByKey[client],
+        dueDate: due === null ? undefined : daysFromNow(due),
+        createdAt,
+        updatedAt: daysFromNow(-Math.floor(createdAgo / 3)),
+      };
+    }),
+    { timestamps: false }
   );
 
   console.log(`Seeded ${createdClients.length} clients and ${projects.length} projects.`);
