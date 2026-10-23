@@ -29,7 +29,7 @@ export const STATUSES = [
 
 export const PRIORITIES = [
   { value: "LOW", label: "Low", rank: 1, color: "text-sky-600 dark:text-sky-400" },
-  { value: "MEDIUM", label: "Medium", rank: 2, color: "text-loom-600 dark:text-loom-300" },
+  { value: "MEDIUM", label: "Medium", rank: 2, color: "text-twill-600 dark:text-twill-300" },
   { value: "HIGH", label: "High", rank: 3, color: "text-thread-600 dark:text-thread-400" },
 ];
 

@@ -1,7 +1,7 @@
 import { initials } from "../../lib/format";
 
 const GRADIENTS = [
-  "from-loom-400 to-loom-700",
+  "from-twill-400 to-twill-700",
   "from-thread-400 to-rose-600",
   "from-amber-400 to-orange-600",
   "from-emerald-400 to-teal-700",

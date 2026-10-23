@@ -61,8 +61,8 @@ export default function ClientDetail() {
       {back}
 
       <section className="relative mb-8 animate-rise overflow-hidden rounded-3xl bg-surface p-6 shadow-soft ring-1 ring-line sm:p-8">
-        <div className="bg-weave absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_60%)]" />
-        <div className="absolute -top-20 -right-10 size-64 rounded-full bg-loom-500/15 blur-3xl" />
+        <div className="bg-twill absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_60%)]" />
+        <div className="absolute -top-20 -right-10 size-64 rounded-full bg-twill-500/15 blur-3xl" />
 
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-4">

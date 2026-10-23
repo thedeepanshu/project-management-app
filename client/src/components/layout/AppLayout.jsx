@@ -39,8 +39,8 @@ function Sidebar() {
   const { newProject } = useWorkspace();
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-surface/70 backdrop-blur-xl lg:flex">
-      <div className="bg-weave relative px-6 pt-6 pb-5 [mask-image:linear-gradient(black_60%,transparent)]">
-        <NavLink to="/" aria-label="Loomwork home">
+      <div className="bg-twill relative px-6 pt-6 pb-5 [mask-image:linear-gradient(black_60%,transparent)]">
+        <NavLink to="/" aria-label="Twillboard home">
           <Logo />
         </NavLink>
       </div>
@@ -68,9 +68,9 @@ function Sidebar() {
           >
             {({ isActive }) => (
               <>
-                <Icon className={`size-[18px] ${isActive ? "text-loom-600 dark:text-loom-300" : ""}`} />
+                <Icon className={`size-[18px] ${isActive ? "text-twill-600 dark:text-twill-300" : ""}`} />
                 {label}
-                {isActive && <span className="ml-auto h-4 w-1 rounded-full bg-linear-to-b from-loom-500 to-thread-500" />}
+                {isActive && <span className="ml-auto h-4 w-1 rounded-full bg-linear-to-b from-twill-500 to-thread-500" />}
               </>
             )}
           </NavLink>
@@ -82,7 +82,7 @@ function Sidebar() {
           <Kbd>N</Kbd> project <Kbd>C</Kbd> client
         </p>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-subtle">Woven with GraphQL</p>
+          <p className="text-xs text-subtle">Stitched with GraphQL</p>
           <ThemeToggle />
         </div>
       </div>
@@ -95,7 +95,7 @@ function MobileBar() {
   return (
     <>
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-line bg-canvas/80 px-4 backdrop-blur-xl lg:hidden">
-        <NavLink to="/" aria-label="Loomwork home">
+        <NavLink to="/" aria-label="Twillboard home">
           <Logo />
         </NavLink>
         <div className="flex items-center gap-1">

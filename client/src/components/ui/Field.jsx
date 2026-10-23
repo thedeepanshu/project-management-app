@@ -3,7 +3,7 @@ import { useId } from "react";
 
 const control =
   "w-full rounded-xl bg-elevated px-3.5 text-[15px] text-ink ring-1 ring-line-strong transition placeholder:text-subtle " +
-  "hover:ring-subtle/70 focus:bg-surface focus:ring-2 focus:ring-loom-500 focus:outline-none " +
+  "hover:ring-subtle/70 focus:bg-surface focus:ring-2 focus:ring-twill-500 focus:outline-none " +
   "aria-invalid:ring-red-500/70 aria-invalid:focus:ring-red-500";
 
 // Renders a label, the control (via render prop so it gets id/aria wiring),

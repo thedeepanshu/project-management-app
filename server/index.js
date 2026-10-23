@@ -16,7 +16,7 @@ const clientDist = fileURLToPath(new URL("../client/dist", import.meta.url));
 const yoga = createYoga({
   schema,
   graphqlEndpoint: "/graphql",
-  graphiql: !env.isProduction && { title: "Loomwork GraphQL" },
+  graphiql: !env.isProduction && { title: "Twillboard GraphQL" },
   landingPage: false,
   context: () => ({ loaders: createLoaders() }),
 });

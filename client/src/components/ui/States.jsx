@@ -17,9 +17,9 @@ export function Skeleton({ className = "" }) {
 export function EmptyState({ icon: Icon, title, children, action }) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-dashed border-line-strong px-6 py-14 text-center">
-      <div className="bg-weave absolute inset-0 [mask-image:radial-gradient(circle,black,transparent_70%)]" />
+      <div className="bg-twill absolute inset-0 [mask-image:radial-gradient(circle,black,transparent_70%)]" />
       <div className="relative">
-        <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-loom-500/10 text-loom-600 ring-1 ring-loom-500/20 dark:text-loom-300">
+        <div className="mx-auto mb-4 grid size-14 place-items-center rounded-2xl bg-twill-500/10 text-twill-600 ring-1 ring-twill-500/20 dark:text-twill-300">
           <Icon className="size-6" />
         </div>
         <h3 className="font-display text-lg font-bold">{title}</h3>

@@ -42,7 +42,7 @@ function CompletionRing({ rate }) {
       <svg viewBox="0 0 120 120" className="size-full -rotate-90">
         <defs>
           <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--color-loom-500)" />
+            <stop offset="0%" stopColor="var(--color-twill-500)" />
             <stop offset="100%" stopColor="var(--color-thread-500)" />
           </linearGradient>
         </defs>
@@ -160,19 +160,19 @@ function ProjectRow({ project, meta }) {
 function Onboarding() {
   const { newClient, newProject } = useWorkspace();
   const steps = [
-    { icon: UserPlus, title: "Add a client", text: "Every project is woven to a client.", action: newClient, cta: "Add client" },
+    { icon: UserPlus, title: "Add a client", text: "Every project belongs to a client.", action: newClient, cta: "Add client" },
     { icon: FolderKanban, title: "Create a project", text: "Set a priority and a deadline.", action: () => newProject(), cta: "New project" },
     { icon: Sparkles, title: "Move it along", text: "Drag cards across the board as work progresses." },
   ];
   return (
     <Card className="p-6 sm:p-8">
-      <h2 className="font-display text-xl font-bold tracking-tight">Let’s set up your loom</h2>
+      <h2 className="font-display text-xl font-bold tracking-tight">Let’s set up your board</h2>
       <p className="mt-1 text-sm text-muted">Three steps and your dashboard comes alive.</p>
       <ol className="mt-6 grid gap-4 sm:grid-cols-3">
         {steps.map((step, index) => (
           <li key={step.title} className="rounded-2xl bg-elevated p-5 ring-1 ring-line">
             <div className="flex items-center justify-between">
-              <step.icon className="size-5 text-loom-600 dark:text-loom-300" />
+              <step.icon className="size-5 text-twill-600 dark:text-twill-300" />
               <span className="font-mono text-xs text-subtle">0{index + 1}</span>
             </div>
             <p className="mt-4 font-semibold">{step.title}</p>
@@ -236,7 +236,7 @@ export default function Dashboard() {
   const inMotion = count("IN_PROGRESS");
   const summary =
     s.totalProjects === 0
-      ? "Your loom is empty — let’s weave your first project."
+      ? "Your board is empty — let’s stitch in your first project."
       : `${pluralize(inMotion, "project")} in motion across ${pluralize(s.totalClients, "client")}` +
         (overdue.length ? `, and ${overdue.length} that need${overdue.length === 1 ? "s" : ""} attention.` : ". Everything is on schedule.");
 
@@ -244,8 +244,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Hero */}
       <section className="relative animate-rise overflow-hidden rounded-3xl bg-surface p-6 shadow-soft ring-1 ring-line sm:p-8">
-        <div className="bg-weave absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
-        <div className="absolute -top-24 -right-16 size-72 rounded-full bg-loom-500/20 blur-3xl" />
+        <div className="bg-twill absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_70%)]" />
+        <div className="absolute -top-24 -right-16 size-72 rounded-full bg-twill-500/20 blur-3xl" />
         <div className="absolute -bottom-28 right-40 size-60 rounded-full bg-thread-500/15 blur-3xl" />
 
         <div className="relative flex flex-col items-start gap-8 md:flex-row md:items-center md:justify-between">
@@ -278,14 +278,14 @@ export default function Dashboard() {
               label="Total projects"
               value={s.totalProjects}
               caption={`${count("NOT_STARTED")} not started yet`}
-              tone="bg-loom-500/12 text-loom-600 dark:text-loom-300"
+              tone="bg-twill-500/12 text-twill-600 dark:text-twill-300"
               delay={60}
             />
             <StatTile
               icon={Timer}
               label="In progress"
               value={inMotion}
-              caption="Being woven right now"
+              caption="Moving right now"
               tone="bg-amber-500/12 text-amber-600 dark:text-amber-400"
               delay={120}
             />

@@ -41,7 +41,7 @@ export function ProjectBoard({ projects }) {
             onDrop={(e) => handleDrop(e, status.value)}
             className={`flex min-h-72 w-[85%] shrink-0 snap-start flex-col rounded-3xl bg-linear-to-b to-transparent p-3 ring-1 transition sm:w-auto ${
               status.column
-            } ${isOver ? "ring-2 ring-loom-500/60 bg-loom-500/5" : "ring-line"}`}
+            } ${isOver ? "ring-2 ring-twill-500/60 bg-twill-500/5" : "ring-line"}`}
           >
             <header className="mb-3 flex items-center justify-between px-1.5 pt-1">
               <h2 className="flex items-center gap-2 text-sm font-semibold">
@@ -81,7 +81,7 @@ export function ProjectBoard({ projects }) {
               {items.length === 0 && (
                 <div
                   className={`grid flex-1 place-items-center rounded-2xl border-2 border-dashed p-6 text-center text-sm transition ${
-                    isOver ? "border-loom-500/50 text-loom-600 dark:text-loom-300" : "border-line text-subtle"
+                    isOver ? "border-twill-500/50 text-twill-600 dark:text-twill-300" : "border-line text-subtle"
                   }`}
                 >
                   Drop a project here

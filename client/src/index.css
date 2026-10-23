@@ -15,7 +15,7 @@
   --ink: #1b1a1f;
   --muted: #67636e;
   --subtle: #9a96a0;
-  --weave: rgb(27 26 31 / 0.05);
+  --twill-rib: rgb(27 26 31 / 0.06);
   color-scheme: light;
 }
 
@@ -28,7 +28,7 @@
   --ink: #f2f0f6;
   --muted: #a6a1b0;
   --subtle: #6f6a7a;
-  --weave: rgb(255 255 255 / 0.04);
+  --twill-rib: rgb(255 255 255 / 0.05);
   color-scheme: dark;
 }
 
@@ -48,17 +48,17 @@
   --font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 
-  /* Brand: "loom" violet and "thread" coral, taken from the logo. */
-  --color-loom-50: #f2f1ff;
-  --color-loom-100: #e6e3ff;
-  --color-loom-200: #d0cbff;
-  --color-loom-300: #b0a6ff;
-  --color-loom-400: #8f80ff;
-  --color-loom-500: #6f5cff;
-  --color-loom-600: #5b45f0;
-  --color-loom-700: #4b36cf;
-  --color-loom-800: #3d2ea6;
-  --color-loom-900: #332a82;
+  /* Brand: "twill" violet and "thread" coral, taken from the logo. */
+  --color-twill-50: #f2f1ff;
+  --color-twill-100: #e6e3ff;
+  --color-twill-200: #d0cbff;
+  --color-twill-300: #b0a6ff;
+  --color-twill-400: #8f80ff;
+  --color-twill-500: #6f5cff;
+  --color-twill-600: #5b45f0;
+  --color-twill-700: #4b36cf;
+  --color-twill-800: #3d2ea6;
+  --color-twill-900: #332a82;
 
   --color-thread-300: #ffb59f;
   --color-thread-400: #ff8f6d;
@@ -93,11 +93,11 @@
   }
 
   ::selection {
-    @apply bg-loom-500/25;
+    @apply bg-twill-500/25;
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-loom-500;
+    @apply outline-2 outline-offset-2 outline-twill-500;
   }
 
   input[type="date"]::-webkit-calendar-picker-indicator {
@@ -106,15 +106,13 @@
 }
 
 @layer components {
-  /* Signature woven-grid texture used behind hero areas. */
-  .bg-weave {
-    background-image:
-      repeating-linear-gradient(90deg, var(--weave) 0 1px, transparent 1px 22px),
-      repeating-linear-gradient(0deg, var(--weave) 0 1px, transparent 1px 22px);
+  /* Signature twill texture (fine diagonal ribs, like denim) behind hero areas. */
+  .bg-twill {
+    background-image: repeating-linear-gradient(-45deg, var(--twill-rib) 0 1px, transparent 1px 11px);
   }
 
   .text-gradient {
-    @apply bg-linear-to-r from-loom-500 via-loom-400 to-thread-500 bg-clip-text text-transparent;
+    @apply bg-linear-to-r from-twill-500 via-twill-400 to-thread-500 bg-clip-text text-transparent;
   }
 }
 

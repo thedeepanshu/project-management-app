@@ -38,7 +38,7 @@ export default function Clients() {
           </Button>
         }
       >
-        {data ? `${pluralize(all.length, "client")} you’re weaving with.` : "Loading your clients…"}
+        {data ? `${pluralize(all.length, "client")} you’re working with.` : "Loading your clients…"}
       </PageHeader>
 
       {all.length > 0 && (
@@ -50,7 +50,7 @@ export default function Clients() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, company, email…"
-            className="h-10 w-full rounded-xl bg-surface pr-3 pl-10 text-sm shadow-soft ring-1 ring-line transition placeholder:text-subtle focus:ring-2 focus:ring-loom-500 focus:outline-none"
+            className="h-10 w-full rounded-xl bg-surface pr-3 pl-10 text-sm shadow-soft ring-1 ring-line transition placeholder:text-subtle focus:ring-2 focus:ring-twill-500 focus:outline-none"
           />
         </label>
       )}

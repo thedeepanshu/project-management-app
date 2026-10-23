@@ -8,7 +8,7 @@ import { useDocumentTitle } from "../hooks/useDocumentTitle";
 function LooseThread({ code, title, message }) {
   return (
     <div className="relative grid min-h-[70dvh] place-items-center overflow-hidden text-center">
-      <div className="bg-weave absolute inset-0 [mask-image:radial-gradient(circle,black,transparent_65%)]" />
+      <div className="bg-twill absolute inset-0 [mask-image:radial-gradient(circle,black,transparent_65%)]" />
       <div className="relative">
         <LogoMark className="mx-auto mb-6 size-14 -rotate-12 opacity-90" />
         <p className="font-display text-8xl font-extrabold tracking-tighter text-gradient">{code}</p>

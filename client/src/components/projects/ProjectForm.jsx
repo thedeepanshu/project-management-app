@@ -47,7 +47,7 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
       onDone?.(data.updateProject);
     } else {
       const { data } = await addProject({ variables: { input } });
-      toast.success(`“${data.addProject.name}” is on the loom`);
+      toast.success(`“${data.addProject.name}” is on the board`);
       onDone?.(data.addProject);
     }
   });

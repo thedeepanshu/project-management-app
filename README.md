@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="client/public/icon-192.png" width="88" alt="Loomwork logo" />
+<img src="client/public/icon-192.png" width="88" alt="Twillboard logo" />
 
-# Loomwork
+# Twillboard
 
-**Weave clients and projects into one clear picture.**
+**Clients and projects, woven into one board.**
 
 A calm, fast project manager for freelancers and small studios — built with React 19, GraphQL, Express 5 and MongoDB.
 
@@ -17,7 +17,7 @@ A calm, fast project manager for freelancers and small studios — built with Re
 
 <br />
 
-<img src="docs/screenshots/dashboard-light.png" alt="Loomwork dashboard" width="100%" />
+<img src="docs/screenshots/dashboard-light.png" alt="Twillboard dashboard" width="100%" />
 
 </div>
 

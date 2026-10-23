@@ -7,8 +7,8 @@
     <clipPath id="clip"><rect width="32" height="32" rx="9"/></clipPath>
   </defs>
   <rect width="32" height="32" rx="9" fill="url(#bg)"/>
-  <g stroke-width="5" fill="none" clip-path="url(#clip)">
-    <path d="M10 0v18.5M10 25.5V32M22 0v6.5M22 13.5V32" stroke="#fff"/>
-    <path d="M0 10h6.5M13.5 10H32M0 22h18.5M25.5 22H32" stroke="#ff8f6d"/>
+  <g stroke-width="4" fill="none" clip-path="url(#clip)">
+    <path d="M7 0V21.75M7 28.25V32M16 0V12.75M16 19.25V32M25 0V3.75M25 10.25V32" stroke="#fff"/>
+    <path d="M0 7H3.75M10.25 7H12.75M19.25 7H32M0 16H3.75M10.25 16H21.75M28.25 16H32M0 25H12.75M19.25 25H21.75M28.25 25H32" stroke="#ff8f6d"/>
   </g>
 </svg>

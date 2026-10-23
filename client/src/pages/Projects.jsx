@@ -84,7 +84,7 @@ export default function Projects() {
           </Button>
         }
       >
-        {data ? `${pluralize(all.length, "project")} on the loom.` : "Loading your projects…"}
+        {data ? `${pluralize(all.length, "project")} on the board.` : "Loading your projects…"}
       </PageHeader>
 
       {/* Toolbar */}
@@ -97,7 +97,7 @@ export default function Projects() {
             value={query}
             onChange={(e) => setParam("q", e.target.value)}
             placeholder="Search by name, description or client…"
-            className="h-10 w-full rounded-xl bg-surface pr-3 pl-10 text-sm shadow-soft ring-1 ring-line transition placeholder:text-subtle focus:ring-2 focus:ring-loom-500 focus:outline-none"
+            className="h-10 w-full rounded-xl bg-surface pr-3 pl-10 text-sm shadow-soft ring-1 ring-line transition placeholder:text-subtle focus:ring-2 focus:ring-twill-500 focus:outline-none"
           />
         </label>
 

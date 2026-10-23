@@ -7,9 +7,9 @@ const base =
 
 const variants = {
   primary:
-    "bg-ink text-canvas shadow-soft hover:bg-ink/88 dark:bg-loom-500 dark:text-white dark:hover:bg-loom-400",
+    "bg-ink text-canvas shadow-soft hover:bg-ink/88 dark:bg-twill-500 dark:text-white dark:hover:bg-twill-400",
   brand:
-    "bg-linear-to-br from-loom-500 to-loom-700 text-white shadow-[0_6px_20px_-6px] shadow-loom-600/60 hover:brightness-110",
+    "bg-linear-to-br from-twill-500 to-twill-700 text-white shadow-[0_6px_20px_-6px] shadow-twill-600/60 hover:brightness-110",
   secondary: "bg-surface text-ink ring-1 ring-line-strong shadow-soft hover:bg-elevated hover:ring-subtle/60",
   ghost: "text-muted hover:bg-ink/5 hover:text-ink",
   danger: "bg-red-600 text-white shadow-soft hover:bg-red-500",

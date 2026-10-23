@@ -3,7 +3,7 @@ import { useSyncExternalStore } from "react";
 // The initial class is set by an inline script in index.html before React
 // loads; this store keeps every consumer in sync when the user toggles it.
 
-const STORAGE_KEY = "loomwork-theme";
+const STORAGE_KEY = "twillboard-theme";
 const listeners = new Set();
 
 const getTheme = () => (document.documentElement.classList.contains("dark") ? "dark" : "light");

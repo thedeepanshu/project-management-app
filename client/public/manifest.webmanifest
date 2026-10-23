@@ -1,7 +1,7 @@
 {
-  "name": "Loomwork",
-  "short_name": "Loomwork",
-  "description": "Weave clients and projects into one clear picture.",
+  "name": "Twillboard",
+  "short_name": "Twillboard",
+  "description": "Clients and projects, woven into one board.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f7f5f2",

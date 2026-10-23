@@ -1,8 +1,8 @@
 {
-  "name": "loomwork",
+  "name": "twillboard",
   "version": "2.0.0",
   "private": true,
-  "description": "Loomwork — weave clients and projects into one clear picture. A full-stack MERN + GraphQL project manager.",
+  "description": "Twillboard — clients and projects, woven into one board. A full-stack MERN + GraphQL project manager.",
   "type": "module",
   "workspaces": [
     "client"

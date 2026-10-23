@@ -33,7 +33,7 @@ export function ProjectCard({ project, showStatus = true, draggable = false, onD
         ${draggable ? "cursor-grab active:cursor-grabbing" : ""} ${dragging ? "rotate-1 opacity-40" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <h3 className="font-display text-[17px] leading-snug font-semibold tracking-tight group-hover:text-loom-600 dark:group-hover:text-loom-300">
+        <h3 className="font-display text-[17px] leading-snug font-semibold tracking-tight group-hover:text-twill-600 dark:group-hover:text-twill-300">
           {project.name}
         </h3>
         <PriorityBadge priority={project.priority} withLabel={false} />

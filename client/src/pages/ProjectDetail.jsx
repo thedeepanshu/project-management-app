@@ -175,14 +175,14 @@ export default function ProjectDetail() {
 
         <aside>
           <Card className="relative overflow-hidden p-6">
-            <div className="bg-weave absolute inset-x-0 top-0 h-24 [mask-image:linear-gradient(black,transparent)]" />
+            <div className="bg-twill absolute inset-x-0 top-0 h-24 [mask-image:linear-gradient(black,transparent)]" />
             <h2 className="relative mb-5 text-sm font-semibold text-muted">Client</h2>
             {client ? (
               <div className="relative">
                 <Link to={`/clients/${client.id}`} className="group flex items-center gap-3">
                   <Avatar name={client.name} size="lg" />
                   <div className="min-w-0">
-                    <p className="truncate font-display text-lg font-bold group-hover:text-loom-600 dark:group-hover:text-loom-300">
+                    <p className="truncate font-display text-lg font-bold group-hover:text-twill-600 dark:group-hover:text-twill-300">
                       {client.name}
                     </p>
                     {client.company && <p className="truncate text-sm text-muted">{client.company}</p>}
