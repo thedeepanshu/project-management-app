@@ -1,55 +1,128 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Design tokens ─────────────────────────────────────────────────────────
+   Light mode is warm "paper"; dark mode is deep "ink". Surfaces are semantic
+   variables so every component themes itself without dark: overrides. */
+
+:root {
+  --canvas: #f7f5f2;
+  --surface: #ffffff;
+  --elevated: #fbfaf8;
+  --line: #e9e5df;
+  --line-strong: #d9d3cb;
+  --ink: #1b1a1f;
+  --muted: #67636e;
+  --subtle: #9a96a0;
+  --weave: rgb(27 26 31 / 0.05);
+  color-scheme: light;
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.dark {
+  --canvas: #0d0c11;
+  --surface: #15141b;
+  --elevated: #1b1a22;
+  --line: #27252f;
+  --line-strong: #35323e;
+  --ink: #f2f0f6;
+  --muted: #a6a1b0;
+  --subtle: #6f6a7a;
+  --weave: rgb(255 255 255 / 0.04);
+  color-scheme: dark;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
 }
 
-.navbar-brand {
-  color: #df3ca6;
+@theme {
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Brand: "loom" violet and "thread" coral, taken from the logo. */
+  --color-loom-50: #f2f1ff;
+  --color-loom-100: #e6e3ff;
+  --color-loom-200: #d0cbff;
+  --color-loom-300: #b0a6ff;
+  --color-loom-400: #8f80ff;
+  --color-loom-500: #6f5cff;
+  --color-loom-600: #5b45f0;
+  --color-loom-700: #4b36cf;
+  --color-loom-800: #3d2ea6;
+  --color-loom-900: #332a82;
+
+  --color-thread-300: #ffb59f;
+  --color-thread-400: #ff8f6d;
+  --color-thread-500: #ff6b47;
+  --color-thread-600: #eb4f2b;
+
+  --shadow-soft: 0 1px 2px rgb(16 12 30 / 0.04), 0 4px 16px -4px rgb(16 12 30 / 0.08);
+  --shadow-lift: 0 2px 4px rgb(16 12 30 / 0.05), 0 16px 40px -12px rgb(16 12 30 / 0.22);
+
+  --animate-rise: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-.navbar-brand img {
-  width: 30px;
-  margin-right: 10px;
+@layer base {
+  html {
+    @apply bg-canvas text-ink antialiased;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  body {
+    @apply min-h-dvh font-sans;
+  }
+
+  ::selection {
+    @apply bg-loom-500/25;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-loom-500;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer opacity-60 dark:invert;
+  }
 }
 
-.btn {
-  font-size: 15px;
+@layer components {
+  /* Signature woven-grid texture used behind hero areas. */
+  .bg-weave {
+    background-image:
+      repeating-linear-gradient(90deg, var(--weave) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(0deg, var(--weave) 0 1px, transparent 1px 22px);
+  }
+
+  .text-gradient {
+    @apply bg-linear-to-r from-loom-500 via-loom-400 to-thread-500 bg-clip-text text-transparent;
+  }
 }
 
-.btn-primary,
-.bg-primary {
-  background-color: #df3ca6 !important;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #df3ca6;
-  opacity: 0.9;
-}
-
-.btn-secondary {
-  background-color: #7430f9;
-}
-
-.btn-secondary:hover {
-  background-color: #7430f9;
-  opacity: 0.9;
-}
-
-.icon {
-  margin-right: 5px;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
