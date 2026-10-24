@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { PasswordInput } from "../components/auth/PasswordInput";
+import { ProfilePhoto } from "../components/auth/ProfilePhoto";
 import { PROVIDERS } from "../components/auth/providers";
 import { PageHeader } from "../components/layout/PageHeader";
-import { Avatar } from "../components/ui/Avatar";
 import { Button } from "../components/ui/Button";
 import { Field, Input } from "../components/ui/Field";
 import { Modal } from "../components/ui/Modal";
@@ -51,8 +51,10 @@ function ProfileSection({ user }) {
 
   return (
     <Section icon={UserRound} title="Profile" description="How you appear in Twillboard.">
+      <div className="mb-6">
+        <ProfilePhoto user={user} />
+      </div>
       <form onSubmit={save} className="flex flex-col gap-5 sm:flex-row sm:items-end">
-        <Avatar name={user.name || user.email} src={user.image} size="lg" />
         <div className="grid flex-1 gap-4 sm:grid-cols-2">
           <Field label="Name">
             {(a11y) => <Input {...a11y} value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="name" />}

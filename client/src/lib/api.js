@@ -11,13 +11,13 @@ async function errorFrom(response) {
   }
 }
 
-export async function postJSON(path, body, { signal } = {}) {
+export async function postJSON(path, body, { signal, method = "POST" } = {}) {
   let response;
   try {
     response = await fetch(path, {
-      method: "POST",
+      method,
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body ?? {}),
       signal,
     });
   } catch (error) {

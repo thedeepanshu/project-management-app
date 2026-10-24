@@ -1,10 +1,12 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { fromNodeHeaders } from "better-auth/node";
 import { haveIBeenPwned } from "better-auth/plugins";
 import mongoose from "mongoose";
 
 import env from "../config/env.js";
+import { destroyAsset } from "../services/cloudinary.js";
 import { sendExistingAccountEmail, sendPasswordResetEmail, sendVerificationEmail } from "../services/mailer.js";
 import { deleteAllUserData } from "./userData.js";
 
@@ -43,6 +45,8 @@ function withVerifiedFlag(url) {
 }
 
 let auth = null;
+// Profile photos to delete once their account deletion has completed.
+const pendingPhotoDeletes = new Map();
 
 /** Builds the auth instance on the app's MongoDB connection (call after connectDB). */
 export function initAuth() {
@@ -104,11 +108,40 @@ export function initAuth() {
     },
 
     user: {
+      additionalFields: {
+        // Cloudinary id of an uploaded profile photo, so it can be deleted when
+        // replaced. Server-managed: clients can't set it and never see it.
+        imagePublicId: { type: "string", required: false, input: false, returned: false },
+      },
       deleteUser: {
         enabled: true,
-        // Remove everything the user owns: projects, clients and their files.
-        afterDelete: async (user) => deleteAllUserData(user.id),
+        // `imagePublicId` isn't returned on user objects, so read it before the
+        // account is deleted, then clean up after the deletion succeeds.
+        beforeDelete: async (user) => {
+          const doc = await client
+            .db(mongoose.connection.name)
+            .collection("user")
+            .findOne({ _id: new mongoose.Types.ObjectId(user.id) }, { projection: { imagePublicId: 1 } });
+          pendingPhotoDeletes.set(user.id, doc?.imagePublicId);
+        },
+        // Remove everything the user owns: projects, clients, their files and the profile photo.
+        afterDelete: async (user) => {
+          await deleteAllUserData(user.id);
+          await destroyAsset(pendingPhotoDeletes.get(user.id));
+          pendingPhotoDeletes.delete(user.id);
+        },
       },
+    },
+
+    hooks: {
+      // Profile photos are upload-only: they're set through POST /api/profile/photo,
+      // which verifies the file is the user's own upload. Block setting `image`
+      // (e.g. to an arbitrary URL) through the general profile-update endpoint.
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path === "/update-user" && ctx.body && "image" in ctx.body) {
+          throw new APIError("BAD_REQUEST", { message: "Upload a profile photo from your device instead." });
+        }
+      }),
     },
 
     // Per-IP limits, stored in MongoDB so they survive restarts and work

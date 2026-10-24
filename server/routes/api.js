@@ -3,7 +3,17 @@ import { rateLimit } from "express-rate-limit";
 
 import { enabledProviders, getSessionUser, PASSWORD_MAX, PASSWORD_MIN } from "../auth/auth.js";
 import env from "../config/env.js";
-import { MAX_BYTES, PURPOSES, signUpload, uploadsEnabled } from "../services/cloudinary.js";
+import mongoose from "mongoose";
+
+import {
+  destroyAsset,
+  isOwnAsset,
+  MAX_BYTES,
+  PURPOSES,
+  signUpload,
+  uploadsEnabled,
+  userFolder,
+} from "../services/cloudinary.js";
 import { emailToConsole } from "../services/mailer.js";
 
 // REST endpoints that don't fit GraphQL well: public feature flags and upload
@@ -50,10 +60,53 @@ api.post(
     if (!uploadsEnabled) return res.status(503).json({ error: "File uploads aren't configured on this server." });
     const { purpose } = req.body ?? {};
     if (!PURPOSES.includes(purpose)) {
-      return res.status(400).json({ error: "purpose must be 'attachment' or 'avatar'" });
+      return res.status(400).json({ error: `purpose must be one of: ${PURPOSES.join(", ")}` });
     }
     res.json(signUpload(purpose, req.user.id));
   }
 );
+
+// ── Profile photo (upload-only) ────────────────────────────────────────────
+
+const users = () => mongoose.connection.db.collection("user");
+const profileLimiter = rateLimit({
+  windowMs: 60 * 60_000,
+  limit: 30,
+  keyGenerator: (req) => req.user.id,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { error: "Too many photo changes. Try again later." },
+});
+
+/** Saves an uploaded photo as the user's profile picture (replacing the old one). */
+api.post("/profile/photo", requireUser, profileLimiter, async (req, res, next) => {
+  try {
+    const { url, publicId } = req.body ?? {};
+    // Only a file this user just uploaded into their own profile folder; never an arbitrary link.
+    if (!uploadsEnabled || !isOwnAsset({ url, publicId }, userFolder(req.user.id, "profile"))) {
+      return res.status(400).json({ error: "Please upload the photo from your device again." });
+    }
+    const _id = new mongoose.Types.ObjectId(req.user.id);
+    const previous = await users().findOne({ _id }, { projection: { imagePublicId: 1 } });
+    await users().updateOne({ _id }, { $set: { image: url, imagePublicId: publicId, updatedAt: new Date() } });
+    if (previous?.imagePublicId && previous.imagePublicId !== publicId) await destroyAsset(previous.imagePublicId);
+    res.json({ image: url });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Removes the profile picture (and deletes an uploaded one from storage). */
+api.delete("/profile/photo", requireUser, profileLimiter, async (req, res, next) => {
+  try {
+    const _id = new mongoose.Types.ObjectId(req.user.id);
+    const previous = await users().findOne({ _id }, { projection: { imagePublicId: 1 } });
+    await users().updateOne({ _id }, { $set: { image: null, updatedAt: new Date() }, $unset: { imagePublicId: "" } });
+    await destroyAsset(previous?.imagePublicId);
+    res.json({ image: null });
+  } catch (error) {
+    next(error);
+  }
+});
 
 api.use((_req, res) => res.status(404).json({ error: "Not found" }));

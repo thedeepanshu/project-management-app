@@ -6,6 +6,7 @@ import { useNavigate } from "react-router";
 import { POPOVER_PANEL, usePopover } from "../../hooks/usePopover";
 import { useTheme } from "../../hooks/useTheme";
 import { authClient } from "../../lib/authClient";
+import { photoThumb } from "../../lib/images";
 import { Avatar } from "../ui/Avatar";
 
 const ITEM =
@@ -46,7 +47,7 @@ export function UserMenu({ compact = false }) {
         aria-label="Account menu"
         className={`flex cursor-pointer items-center gap-3 rounded-xl text-left transition hover:bg-ink/5 ${compact ? "p-1" : "w-full p-2"}`}
       >
-        <Avatar name={user.name || user.email} src={user.image} size={compact ? "sm" : "md"} />
+        <Avatar name={user.name || user.email} src={photoThumb(user.image, 80)} size={compact ? "sm" : "md"} />
         {!compact && (
           <>
             <span className="min-w-0 flex-1">

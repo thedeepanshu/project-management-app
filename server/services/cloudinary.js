@@ -6,12 +6,14 @@ import env from "../config/env.js";
 export const uploadsEnabled = Boolean(env.cloudinaryUrl);
 const config = uploadsEnabled ? cloudinary.config() : {};
 
-export const PURPOSES = ["attachment", "avatar"];
+// attachment = project files, avatar = client photos, profile = the user's own photo.
+const FOLDER_NAMES = { attachment: "attachments", avatar: "avatars", profile: "profile" };
+export const PURPOSES = Object.keys(FOLDER_NAMES);
 
 /** Each user's files live in their own folder, e.g. twillboard/users/<id>/attachments. */
 export function userFolder(userId, purpose) {
   if (!/^[A-Za-z0-9_-]+$/.test(userId) || !PURPOSES.includes(purpose)) throw new Error("Invalid upload folder");
-  return `twillboard/users/${userId}/${purpose === "avatar" ? "avatars" : "attachments"}`;
+  return `twillboard/users/${userId}/${FOLDER_NAMES[purpose]}`;
 }
 
 // Free-plan per-file limits, also enforced in the browser before uploading.
@@ -32,7 +34,7 @@ export function signUpload(purpose, userId) {
     timestamp,
     folder,
     signature,
-    resourceType: purpose === "avatar" ? "image" : "auto",
+    resourceType: purpose === "attachment" ? "auto" : "image", // photos must be images
   };
 }
 
