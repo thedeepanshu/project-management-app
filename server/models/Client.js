@@ -6,6 +6,8 @@ export const PHONE_PATTERN = /^\+?[\d\s().-]{7,20}$/;
 
 const ClientSchema = new mongoose.Schema(
   {
+    // The user (auth account) this client belongs to. Every query filters on it.
+    ownerId: { type: String, required: true, index: true },
     name: {
       type: String,
       required: [true, "Client name is required"],
@@ -18,7 +20,6 @@ const ClientSchema = new mongoose.Schema(
       required: [true, "Email is required"],
       trim: true,
       lowercase: true,
-      unique: true,
       match: [EMAIL_PATTERN, "Please enter a valid email address"],
     },
     phone: {
@@ -43,5 +44,8 @@ const ClientSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// A client email is unique within each user's workspace (two users may share a client).
+ClientSchema.index({ ownerId: 1, email: 1 }, { unique: true });
 
 export default mongoose.model("Client", ClientSchema);

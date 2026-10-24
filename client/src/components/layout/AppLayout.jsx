@@ -1,33 +1,19 @@
-import { FolderKanban, LayoutDashboard, Moon, Plus, Sun, Users } from "lucide-react";
-import { NavLink, Outlet, ScrollRestoration } from "react-router";
-import { Toaster } from "sonner";
+import { FolderKanban, LayoutDashboard, Plus, Users } from "lucide-react";
+import { useEffect } from "react";
+import { NavLink, Outlet, ScrollRestoration, useLocation, useNavigate } from "react-router";
+import { toast, Toaster } from "sonner";
 
 import { useWorkspace } from "../../context/workspace";
 import { useTheme } from "../../hooks/useTheme";
 import { Logo } from "../brand/Logo";
 import { Button } from "../ui/Button";
+import { UserMenu } from "./UserMenu";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/clients", label: "Clients", icon: Users },
 ];
-
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  const dark = theme === "dark";
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={toggleTheme}
-      aria-label={`Switch to ${dark ? "light" : "dark"} mode`}
-      title={`Switch to ${dark ? "light" : "dark"} mode`}
-    >
-      {dark ? <Sun /> : <Moon />}
-    </Button>
-  );
-}
 
 function Kbd({ children }) {
   return (
@@ -77,14 +63,11 @@ function Sidebar() {
         ))}
       </nav>
 
-      <div className="space-y-3 border-t border-line px-6 py-5">
-        <p className="flex items-center gap-2 text-xs text-subtle">
+      <div className="space-y-3 border-t border-line px-3 py-4">
+        <p className="flex items-center gap-2 px-3 text-xs text-subtle">
           <Kbd>N</Kbd> project <Kbd>C</Kbd> client
         </p>
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-subtle">Stitched with GraphQL</p>
-          <ThemeToggle />
-        </div>
+        <UserMenu />
       </div>
     </aside>
   );
@@ -98,11 +81,11 @@ function MobileBar() {
         <NavLink to="/" aria-label="Twillboard home">
           <Logo />
         </NavLink>
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
+        <div className="flex items-center gap-1.5">
           <Button variant="brand" size="icon" onClick={() => newProject()} aria-label="New project">
             <Plus />
           </Button>
+          <UserMenu compact />
         </div>
       </header>
 
@@ -132,6 +115,18 @@ function MobileBar() {
 
 export function AppLayout() {
   const { theme } = useTheme();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Arriving from the email-verification link (on whichever page they land).
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (!params.has("verified")) return;
+    toast.success("Email verified. Welcome to Twillboard!");
+    params.delete("verified");
+    const search = params.toString();
+    navigate(location.pathname + (search ? `?${search}` : ""), { replace: true });
+  }, [location, navigate]);
   return (
     <>
       <Sidebar />

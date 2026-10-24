@@ -29,14 +29,8 @@
       rel="stylesheet"
     />
 
-    <!-- Apply the saved theme before first paint to avoid a light/dark flash. -->
-    <script>
-      try {
-        const saved = localStorage.getItem("twillboard-theme");
-        const dark = saved ? saved === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-        document.documentElement.classList.toggle("dark", dark);
-      } catch {}
-    </script>
+    <!-- Applies the saved theme before first paint (external so CSP can forbid inline scripts). -->
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <noscript>Twillboard needs JavaScript enabled to run.</noscript>

@@ -16,6 +16,7 @@ import { Link } from "react-router";
 import { useWorkspace } from "../context/workspace";
 import { GET_CLIENTS, GET_PROJECTS, GET_STATS } from "../graphql/documents";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { authClient } from "../lib/authClient";
 import { daysUntil, greeting, isOverdue, pluralize } from "../lib/format";
 import { STATUSES } from "../lib/meta";
 import { DueLabel } from "../components/projects/ProjectCard";
@@ -206,6 +207,9 @@ function DashboardSkeleton() {
 export default function Dashboard() {
   useDocumentTitle("Dashboard");
   const { newProject } = useWorkspace();
+  const { data: session } = authClient.useSession();
+  const firstName = session?.user.name?.trim().split(/\s+/)[0] || "maker";
+
   const stats = useQuery(GET_STATS);
   const projects = useQuery(GET_PROJECTS);
   const clients = useQuery(GET_CLIENTS);
@@ -252,7 +256,7 @@ export default function Dashboard() {
           <div className="max-w-xl">
             <p className="font-mono text-xs tracking-wider text-subtle uppercase">{today.format(new Date())}</p>
             <h1 className="mt-2 font-display text-4xl font-bold tracking-tight sm:text-5xl">
-              {greeting()}, <span className="text-gradient">maker.</span>
+              {greeting()}, <span className="text-gradient">{firstName}.</span>
             </h1>
             <p className="mt-3 text-lg text-muted">{summary}</p>
             <div className="mt-6 flex flex-wrap gap-2">

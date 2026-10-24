@@ -35,6 +35,6 @@ export function getAppConfig() {
   configPromise ??= fetch("/api/config")
     .then((response) => (response.ok ? response.json() : null))
     .catch(() => null)
-    .then((config) => config ?? { uploads: { enabled: false } });
+    .then((config) => config ?? { auth: { providers: [], password: { min: 10, max: 128 } }, uploads: { enabled: false } });
   return configPromise;
 }
