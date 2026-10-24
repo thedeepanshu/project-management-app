@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { WorkspaceContext } from "../context/workspace";
 import { ClientForm } from "./clients/ClientForm";
+import { NewClientWizard } from "./clients/NewClientWizard";
 import { ProjectForm } from "./projects/ProjectForm";
 import { Modal } from "./ui/Modal";
 
@@ -74,9 +75,13 @@ export function WorkspaceProvider({ children }) {
         open={clientModal.open}
         onClose={closeClient}
         title={clientModal.client ? "Edit client" : "New client"}
-        description={clientModal.client ? "Keep their contact details current." : "Who are you building for?"}
+        description={clientModal.client ? "Keep their contact details current." : "Who are you building for? Add their first project too, if you like."}
       >
-        <ClientForm client={clientModal.client} onDone={closeClient} onCancel={closeClient} />
+        {clientModal.client ? (
+          <ClientForm client={clientModal.client} onDone={closeClient} onCancel={closeClient} />
+        ) : (
+          <NewClientWizard onDone={closeClient} onCancel={closeClient} />
+        )}
       </Modal>
     </WorkspaceContext>
   );

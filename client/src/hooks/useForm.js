@@ -30,12 +30,17 @@ export function useForm(initialValues, validate) {
     setFields({ [field]: value });
   }
 
-  const handleSubmit = (onValid) => async (event) => {
-    event.preventDefault();
+  /** Validates every field now (errors stay live from here on). True when valid. */
+  function check() {
     setSubmitted(true);
     const found = validate(values);
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    return Object.keys(found).length === 0;
+  }
+
+  const handleSubmit = (onValid) => async (event) => {
+    event.preventDefault();
+    if (!check()) return;
 
     setSubmitting(true);
     try {
@@ -49,5 +54,5 @@ export function useForm(initialValues, validate) {
     }
   };
 
-  return { values, errors, setField, setFields, handleSubmit, submitting };
+  return { values, errors, setErrors, setField, setFields, check, handleSubmit, submitting };
 }
