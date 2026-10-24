@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { AuthAlert, AuthHeading } from "../../components/auth/AuthLayout";
+import { DevSocialHint } from "../../components/auth/DevHints";
 import { PasswordInput } from "../../components/auth/PasswordInput";
 import { SocialButtons } from "../../components/auth/SocialButtons";
 import { Button } from "../../components/ui/Button";
@@ -72,6 +73,7 @@ export default function SignIn() {
         </AuthAlert>
       )}
 
+      <DevSocialHint />
       <SocialButtons next={next} onError={setError} divider="or with email" />
 
       <form onSubmit={onSubmit} noValidate className="space-y-4">

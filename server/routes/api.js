@@ -2,7 +2,9 @@ import express, { Router } from "express";
 import { rateLimit } from "express-rate-limit";
 
 import { enabledProviders, getSessionUser, PASSWORD_MAX, PASSWORD_MIN } from "../auth/auth.js";
+import env from "../config/env.js";
 import { MAX_BYTES, PURPOSES, signUpload, uploadsEnabled } from "../services/cloudinary.js";
+import { emailToConsole } from "../services/mailer.js";
 
 // REST endpoints that don't fit GraphQL well: public feature flags and upload
 // signatures. Auth lives under /api/auth (Better Auth); data in /graphql.
@@ -26,6 +28,8 @@ api.get("/config", (_req, res) => {
   res.set("Cache-Control", "no-store").json({
     auth: { providers: enabledProviders, password: { min: PASSWORD_MIN, max: PASSWORD_MAX } },
     uploads: { enabled: uploadsEnabled, maxBytes: MAX_BYTES },
+    // Development-only hints for setup gaps (never sent in production).
+    ...(!env.isProduction && { dev: { emailToConsole } }),
   });
 });
 

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 
 import { AuthAlert, AuthHeading } from "../../components/auth/AuthLayout";
+import { DevSocialHint } from "../../components/auth/DevHints";
 import { PasswordInput } from "../../components/auth/PasswordInput";
 import { SocialButtons } from "../../components/auth/SocialButtons";
 import { Button } from "../../components/ui/Button";
@@ -10,6 +11,7 @@ import { Field, Input } from "../../components/ui/Field";
 import { useAppConfig } from "../../hooks/useAppConfig";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { authClient, authErrorMessage, safeNext } from "../../lib/authClient";
+import { markVerificationSent } from "../../lib/resendCooldown";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -69,6 +71,7 @@ export default function SignUp() {
       } else setFormError(authErrorMessage(error));
       return;
     }
+    markVerificationSent(email);
     navigate(`/check-email?email=${encodeURIComponent(email)}`, { replace: true });
   }
 
@@ -77,6 +80,7 @@ export default function SignUp() {
       <AuthHeading title="Create your account">Free, private to you, and ready in a minute.</AuthHeading>
       {formError && <AuthAlert>{formError}</AuthAlert>}
 
+      <DevSocialHint />
       <SocialButtons next={next} onError={setFormError} label="Sign up with" divider="or with email" />
 
       <form onSubmit={onSubmit} noValidate className="space-y-4">

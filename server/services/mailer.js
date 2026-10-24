@@ -13,6 +13,8 @@ const transport =
     : null;
 
 export const emailMode = transport ? `Gmail (${env.smtp.user})` : "console (development)";
+/** True when emails are printed to the terminal instead of sent (development only). */
+export const emailToConsole = !transport;
 const from = env.smtp.from ?? (env.smtp.user ? `Twillboard <${env.smtp.user}>` : "Twillboard <no-reply@localhost>");
 
 const escapeHtml = (value) =>

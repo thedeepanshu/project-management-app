@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 
 import { AuthAlert, AuthHeading } from "../../components/auth/AuthLayout";
+import { DevEmailHint } from "../../components/auth/DevHints";
 import { Button } from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -40,9 +41,12 @@ export default function ForgotPassword() {
 
       {sent ? (
         // Same message whether or not the account exists (no account enumeration).
-        <AuthAlert tone="success">
-          If an account exists for <strong>{email.trim()}</strong>, a reset link is on its way. It expires in 30 minutes.
-        </AuthAlert>
+        <>
+          <AuthAlert tone="success">
+            If an account exists for <strong>{email.trim()}</strong>, a reset link is on its way. It expires in 30 minutes.
+          </AuthAlert>
+          <DevEmailHint />
+        </>
       ) : (
         <form onSubmit={onSubmit} noValidate className="space-y-4">
           {error && <AuthAlert>{error}</AuthAlert>}
