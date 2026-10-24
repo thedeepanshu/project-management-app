@@ -119,9 +119,10 @@ export function Dropdown({
         <ChevronDown className="size-4 shrink-0 text-subtle transition-transform duration-200 group-aria-expanded:rotate-180" />
       </button>
 
-      <div ref={popoverRef} popover="manual" className={`${POPOVER_PANEL} max-w-[calc(100vw-1rem)]`}>
+      {/* Column layout: when space is tight the search stays put and only the list scrolls. */}
+      <div ref={popoverRef} popover="manual" className={`${POPOVER_PANEL} max-w-[calc(100vw-1rem)] open:flex open:flex-col`}>
         {searchable && (
-          <label className="relative mb-1.5 block">
+          <label className="relative mb-1.5 block shrink-0">
             <span className="sr-only">Filter options</span>
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-subtle" />
             <input
@@ -145,7 +146,7 @@ export function Dropdown({
           tabIndex={-1}
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
           onKeyDown={onListKeyDown}
-          className="scroll-soft max-h-72 overflow-y-auto focus:outline-none"
+          className="scroll-soft max-h-72 min-h-0 flex-1 overflow-y-auto focus:outline-none"
         >
           {visible.length === 0 && <li className="px-3 py-6 text-center text-sm text-subtle">No matches</li>}
           {visible.map((option, index) => {
