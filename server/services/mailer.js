@@ -57,7 +57,30 @@ async function send({ to, subject, ...content }) {
  * so response timing can't be used to tell whether an account exists.
  */
 function dispatch(message) {
-  send(message).catch((error) => console.error(`✖ Email to ${message.to} failed: ${error.message}`));
+  send(message).catch((error) => {
+    console.error(`✖ Email to ${message.to} failed: ${error.message.split("\n")[0]}`);
+    if (error.responseCode === 535) {
+      console.error("  Gmail rejected SMTP_USER/SMTP_PASS. SMTP_PASS must be a 16-letter app password");
+      console.error("  (https://myaccount.google.com/apppasswords), not your normal Gmail password.");
+    }
+    // In development, never leave the developer without the link.
+    if (!env.isProduction && message.url) {
+      console.log(styleText("cyan", `  Link (printed because sending failed): ${message.url}\n`));
+    }
+  });
+}
+
+/** Checks the Gmail login at startup, so a bad password shows up immediately. */
+export async function verifyEmailTransport() {
+  if (!transport) return;
+  try {
+    await transport.verify();
+  } catch (error) {
+    console.error(styleText("red", `✖ Email: Gmail rejected the login for ${env.smtp.user}.`));
+    console.error("  SMTP_PASS must be a 16-letter app password from https://myaccount.google.com/apppasswords");
+    console.error("  (needs 2-Step Verification), not your normal Gmail password." + (env.isProduction ? "" : " Links will be printed here meanwhile."));
+    if (error.responseCode !== 535) console.error(`  Details: ${error.message.split("\n")[0]}`);
+  }
 }
 
 const firstName = (user) => escapeHtml(user.name?.split(" ")[0] || "there");

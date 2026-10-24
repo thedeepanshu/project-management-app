@@ -16,7 +16,7 @@ import { schema } from "./graphql/schema.js";
 import { useQueryProtection } from "./graphql/security.js";
 import { api } from "./routes/api.js";
 import { uploadsEnabled } from "./services/cloudinary.js";
-import { emailMode } from "./services/mailer.js";
+import { emailMode, verifyEmailTransport } from "./services/mailer.js";
 
 const clientDist = fileURLToPath(new URL("../client/dist", import.meta.url));
 
@@ -112,6 +112,7 @@ const server = app.listen(env.port, () => {
   console.log(styleText("magenta", `✔ API ready at http://localhost:${env.port}/graphql`));
   console.log(`✔ Auth: email + password${enabledProviders.length ? `, ${enabledProviders.join(", ")}` : " (no social providers configured)"}`);
   console.log(`✔ Email: ${emailMode}`);
+  verifyEmailTransport();
   console.log(uploadsEnabled ? "✔ Uploads: Cloudinary" : "○ Uploads: off (set CLOUDINARY_URL to enable)");
 });
 
