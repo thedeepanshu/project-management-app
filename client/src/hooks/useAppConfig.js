@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { getAppConfig } from "../lib/api";
 
-const OFF = { ai: { enabled: false }, uploads: { enabled: false } };
+const OFF = { uploads: { enabled: false } };
 
 /** Server feature flags. Features stay hidden until the config says they're on. */
 export function useAppConfig() {

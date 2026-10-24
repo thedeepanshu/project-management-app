@@ -11,7 +11,6 @@ import env from "./config/env.js";
 import { createLoaders } from "./graphql/loaders.js";
 import { schema } from "./graphql/schema.js";
 import { api } from "./routes/api.js";
-import { ai } from "./ai/provider.js";
 import { uploadsEnabled } from "./services/cloudinary.js";
 
 const clientDist = fileURLToPath(new URL("../client/dist", import.meta.url));
@@ -49,7 +48,6 @@ await connectDB();
 
 const server = app.listen(env.port, () => {
   console.log(styleText("magenta", `✔ API ready at http://localhost:${env.port}/graphql`));
-  console.log(ai ? `✔ AI: ${ai.provider} (${ai.model})` : "○ AI: off (set GEMINI_API_KEY to enable)");
   console.log(uploadsEnabled ? "✔ Uploads: Cloudinary" : "○ Uploads: off (set CLOUDINARY_URL to enable)");
 });
 

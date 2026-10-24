@@ -1,9 +1,10 @@
 import { useMutation } from "@apollo/client/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ADD_CLIENT, REFRESH_ALL, UPDATE_CLIENT } from "../../graphql/documents";
 import { useForm } from "../../hooks/useForm";
+import { discardUploads } from "../../lib/uploads";
 import { validateClient } from "../../lib/validation";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
@@ -24,10 +25,32 @@ export function ClientForm({ client, onDone, onCancel }) {
   );
   const [photoBusy, setPhotoBusy] = useState(false);
 
+  // Photos uploaded in this form but not saved yet are deleted when they're
+  // replaced, or when the form closes without saving.
+  const savedPhotoId = client?.avatarPublicId ?? null;
+  const unsavedPhotoRef = useRef(null);
+  const savedRef = useRef(false);
+  useEffect(
+    () => () => {
+      if (!savedRef.current && unsavedPhotoRef.current) {
+        discardUploads([{ publicId: unsavedPhotoRef.current, resourceType: "image" }]);
+      }
+    },
+    []
+  );
+
+  function changePhoto(photo) {
+    if (unsavedPhotoRef.current && unsavedPhotoRef.current !== photo.avatarPublicId) {
+      discardUploads([{ publicId: unsavedPhotoRef.current, resourceType: "image" }]);
+    }
+    unsavedPhotoRef.current = photo.avatarPublicId && photo.avatarPublicId !== savedPhotoId ? photo.avatarPublicId : null;
+    setFields(photo);
+  }
+
   const [addClient] = useMutation(ADD_CLIENT, { refetchQueries: REFRESH_ALL });
   const [updateClient] = useMutation(UPDATE_CLIENT, { refetchQueries: REFRESH_ALL });
 
-  const onSubmit = handleSubmit(async (form) => {
+  const onSubmit = (event) => handleSubmit(async (form) => {
     const input = {
       name: form.name.trim(),
       email: form.email.trim(),
@@ -38,14 +61,16 @@ export function ClientForm({ client, onDone, onCancel }) {
     };
     if (isEdit) {
       const { data } = await updateClient({ variables: { id: client.id, input } });
+      savedRef.current = true;
       toast.success("Client updated");
       onDone?.(data.updateClient);
     } else {
       const { data } = await addClient({ variables: { input } });
+      savedRef.current = true;
       toast.success(`${data.addClient.name} added to your clients`);
       onDone?.(data.addClient);
     }
-  });
+  })(event);
 
   const bind = (field) => ({
     value: values[field],
@@ -57,7 +82,7 @@ export function ClientForm({ client, onDone, onCancel }) {
       <AvatarPicker
         name={values.name}
         value={{ avatarUrl: values.avatarUrl, avatarPublicId: values.avatarPublicId }}
-        onChange={setFields}
+        onChange={changePhoto}
         onBusyChange={setPhotoBusy}
         error={errors.avatarUrl}
       />

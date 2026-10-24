@@ -23,8 +23,6 @@
   "author": "Deepanshu Saini",
   "license": "ISC",
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.2.0",
-    "@google/genai": "^2.31.0",
     "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
     "dataloader": "^2.2.3",

@@ -121,6 +121,14 @@ export const typeDefs = /* GraphQL */ `
     "YYYY-MM-DD or ISO-8601."
     dueDate: String
     clientId: ID!
+    "Files already uploaded to Cloudinary via /api/uploads."
+    attachments: [AttachmentInput!]
+  }
+
+  "A file that was uploaded but never saved (e.g. the form was cancelled)."
+  input UploadRefInput {
+    publicId: String!
+    resourceType: String!
   }
 
   "Only the fields you pass are changed. Pass dueDate: null to clear the deadline."
@@ -131,6 +139,10 @@ export const typeDefs = /* GraphQL */ `
     priority: ProjectPriority
     dueDate: String
     clientId: ID
+    "Newly uploaded files to attach."
+    addAttachments: [AttachmentInput!]
+    "Attachments to remove (their files are deleted from storage)."
+    removeAttachmentIds: [ID!]
   }
 
   type Mutation {
@@ -145,5 +157,7 @@ export const typeDefs = /* GraphQL */ `
     addAttachments(projectId: ID!, attachments: [AttachmentInput!]!): Project!
     "Removes a file from the project and deletes it from storage."
     removeAttachment(projectId: ID!, attachmentId: ID!): Project!
+    "Deletes uploaded files that no project or client uses (cleanup after a cancelled form)."
+    discardUploads(files: [UploadRefInput!]!): Boolean!
   }
 `;

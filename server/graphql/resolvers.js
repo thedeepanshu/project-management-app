@@ -18,6 +18,23 @@ function attachmentKind({ resourceType, format, name }) {
   return DOCUMENT_FORMATS.has(extension) ? "DOCUMENT" : "OTHER";
 }
 
+// Accepts only metadata for files uploaded into our own Cloudinary folder,
+// and enforces the per-project file limit.
+function assertUploadedFiles(files, existingCount) {
+  if (files.length === 0) return;
+  if (!uploadsEnabled) throw badInput("File uploads aren't configured on this server.");
+  if (existingCount + files.length > MAX_ATTACHMENTS) {
+    throw badInput(`A project can have at most ${MAX_ATTACHMENTS} files.`, {
+      attachments: `At most ${MAX_ATTACHMENTS} files`,
+    });
+  }
+  for (const file of files) {
+    if (!isOwnAsset(file, FOLDERS.attachment) || !["image", "video", "raw"].includes(file.resourceType)) {
+      throw badInput(`“${file.name}” wasn't uploaded through Twillboard. Please upload it again.`);
+    }
+  }
+}
+
 function destroyProjectFiles(project) {
   return Promise.all(project.attachments.map((file) => destroyAsset(file.publicId, file.resourceType)));
 }
@@ -194,7 +211,9 @@ export const resolvers = {
 
     addProject: safe(async (_parent, { input }) => {
       await assertClientExists(input.clientId);
-      return Project.create({ ...input, dueDate: parseDueDate(input.dueDate) });
+      const attachments = input.attachments ?? [];
+      assertUploadedFiles(attachments, 0);
+      return Project.create({ ...input, attachments, dueDate: parseDueDate(input.dueDate) });
     }),
 
     updateProject: safe(async (_parent, { id, input }) => {
@@ -202,13 +221,28 @@ export const resolvers = {
 
       if (input.clientId) await assertClientExists(input.clientId);
 
-      const { dueDate, ...rest } = input;
+      const { dueDate, addAttachments = [], removeAttachmentIds = [], ...rest } = input;
       for (const [key, value] of Object.entries(rest)) {
         if (value !== undefined && value !== null) project.set(key, value);
       }
       if ("dueDate" in input) project.dueDate = parseDueDate(dueDate) ?? undefined;
 
-      return project.save();
+      // Remove first so a swap (remove one, add one) isn't blocked by the file limit.
+      const removed = [];
+      for (const attachmentId of removeAttachmentIds ?? []) {
+        assertObjectId(attachmentId, "attachmentId");
+        const file = project.attachments.id(attachmentId);
+        if (file) {
+          removed.push({ publicId: file.publicId, resourceType: file.resourceType });
+          file.deleteOne();
+        }
+      }
+      assertUploadedFiles(addAttachments ?? [], project.attachments.length);
+      project.attachments.push(...(addAttachments ?? []));
+
+      await project.save();
+      await Promise.all(removed.map((file) => destroyAsset(file.publicId, file.resourceType)));
+      return project;
     }),
 
     deleteProject: safe(async (_parent, { id }) => {
@@ -219,19 +253,8 @@ export const resolvers = {
     }),
 
     addAttachments: safe(async (_parent, { projectId, attachments }) => {
-      if (!uploadsEnabled) throw badInput("File uploads aren't configured on this server.");
       const project = await findOrThrow(Project, projectId, "Project");
-
-      if (project.attachments.length + attachments.length > MAX_ATTACHMENTS) {
-        throw badInput(
-          `A project can have at most ${MAX_ATTACHMENTS} files (this one has ${project.attachments.length}).`
-        );
-      }
-      for (const file of attachments) {
-        if (!isOwnAsset(file, FOLDERS.attachment) || !["image", "video", "raw"].includes(file.resourceType)) {
-          throw badInput(`“${file.name}” wasn't uploaded through Twillboard. Please upload it again.`);
-        }
-      }
+      assertUploadedFiles(attachments, project.attachments.length);
 
       project.attachments.push(...attachments);
       return project.save();
@@ -247,6 +270,22 @@ export const resolvers = {
       await project.save();
       await destroyAsset(file.publicId, file.resourceType);
       return project;
+    }),
+
+    discardUploads: safe(async (_parent, { files }) => {
+      // Only delete files in our folders that nothing references, so this can
+      // never remove a file that a saved project or client is using.
+      await Promise.all(
+        files.slice(0, 50).map(async ({ publicId, resourceType }) => {
+          if (!["image", "video", "raw"].includes(resourceType)) return;
+          if (publicId.startsWith(`${FOLDERS.attachment}/`)) {
+            if (!(await Project.exists({ "attachments.publicId": publicId }))) await destroyAsset(publicId, resourceType);
+          } else if (publicId.startsWith(`${FOLDERS.avatar}/`)) {
+            if (!(await Client.exists({ avatarPublicId: publicId }))) await destroyAsset(publicId, "image");
+          }
+        })
+      );
+      return true;
     }),
   },
 };

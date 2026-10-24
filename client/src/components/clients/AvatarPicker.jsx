@@ -1,8 +1,8 @@
 import { Check, Link2, Trash2, Upload, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useAppConfig } from "../../hooks/useAppConfig";
-import { AVATAR_ACCEPT, uploadFile } from "../../lib/uploads";
+import { AVATAR_ACCEPT, discardUploads, uploadFile } from "../../lib/uploads";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Field";
@@ -23,6 +23,15 @@ export function AvatarPicker({ name, value, onChange, error, onBusyChange }) {
 
   const uploading = progress !== null;
 
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      controllerRef.current?.abort();
+    };
+  }, []);
+
   async function handleFile(file) {
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -38,6 +47,8 @@ export function AvatarPicker({ name, value, onChange, error, onBusyChange }) {
         onProgress: setProgress,
         signal: controllerRef.current.signal,
       });
+      // Finished after the form closed: nothing will save it, so clean it up.
+      if (unmountedRef.current) return discardUploads([result]);
       onChange({ avatarUrl: result.url, avatarPublicId: result.publicId });
     } catch (err) {
       if (err.name !== "AbortError") setUploadError(err.message);

@@ -1,16 +1,17 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { UserPlus } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ADD_PROJECT, GET_CLIENTS, REFRESH_ALL, UPDATE_PROJECT } from "../../graphql/documents";
 import { useAppConfig } from "../../hooks/useAppConfig";
 import { useForm } from "../../hooks/useForm";
-import { useDescriptionAI, useTitleAI } from "../../hooks/useProjectAI";
 import { toDateInput } from "../../lib/format";
+import { discardUploads } from "../../lib/uploads";
 import { PRIORITIES, STATUSES } from "../../lib/meta";
 import { validateProject } from "../../lib/validation";
-import { AIButton } from "../ai/AIButton";
-import { DescriptionSuggestion } from "../ai/DescriptionSuggestion";
+import { AttachmentPicker } from "../attachments/AttachmentPicker";
+import { savedItem } from "../attachments/fileMeta";
 import { PriorityIcon } from "../ui/Badges";
 import { Button } from "../ui/Button";
 import { Field, Input, Select, Textarea } from "../ui/Field";
@@ -29,9 +30,6 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
   const isEdit = Boolean(project);
   const { data, loading } = useQuery(GET_CLIENTS);
   const clients = data?.clients ?? [];
-  const aiEnabled = useAppConfig().ai.enabled;
-  const descriptionAI = useDescriptionAI();
-  const titleAI = useTitleAI();
 
   const { values, errors, setField, handleSubmit, submitting } = useForm(
     {
@@ -48,7 +46,35 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
   const [addProject] = useMutation(ADD_PROJECT, { refetchQueries: REFRESH_ALL });
   const [updateProject] = useMutation(UPDATE_PROJECT, { refetchQueries: REFRESH_ALL });
 
-  const onSubmit = handleSubmit(async (form) => {
+  const uploadsEnabled = useAppConfig().uploads.enabled;
+  const [files, setFiles] = useState(() => (project?.attachments ?? []).map(savedItem));
+  const uploading = files.some((file) => file.status === "uploading");
+
+  // Closing the form without saving: stop uploads and delete files that were
+  // uploaded here but never saved.
+  const savedRef = useRef(false);
+  const filesRef = useRef(files);
+  useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+  useEffect(
+    () => () => {
+      const pending = filesRef.current;
+      pending.forEach((file) => {
+        file.controller?.abort();
+        if (file.previewUrl) URL.revokeObjectURL(file.previewUrl);
+      });
+      if (!savedRef.current) discardUploads(pending.filter((file) => file.status === "ready").map((file) => file.input));
+    },
+    []
+  );
+
+  const onSubmit = (event) => handleSubmit(async (form) => {
+    if (uploading) {
+      toast.error("Please wait for the files to finish uploading.");
+      return;
+    }
+    const newFiles = files.filter((file) => file.status === "ready").map((file) => file.input);
     const input = {
       name: form.name.trim(),
       description: form.description.trim(),
@@ -58,15 +84,21 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
       clientId: form.clientId,
     };
     if (isEdit) {
+      const keptIds = new Set(files.filter((file) => file.status === "saved").map((file) => file.attachment.id));
+      input.addAttachments = newFiles;
+      input.removeAttachmentIds = project.attachments.filter((file) => !keptIds.has(file.id)).map((file) => file.id);
       const { data } = await updateProject({ variables: { id: project.id, input } });
+      savedRef.current = true;
       toast.success("Project updated");
       onDone?.(data.updateProject);
     } else {
+      input.attachments = newFiles;
       const { data } = await addProject({ variables: { input } });
+      savedRef.current = true;
       toast.success(`“${data.addProject.name}” is on the board`);
       onDone?.(data.addProject);
     }
-  });
+  })(event);
 
   if (loading && !data) {
     return (
@@ -92,123 +124,33 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <div>
-        <Field
-          label="Project name"
-          error={errors.name ?? titleAI.error}
-          action={
-            aiEnabled && (
-              <AIButton
-                loading={titleAI.loading}
-                disabled={!values.name.trim()}
-                title={values.name.trim() ? "Suggest clearer titles" : "Type a title first"}
-                onClick={() => titleAI.suggest({ name: values.name, description: values.description })}
-              >
-                Suggest
-              </AIButton>
-            )
-          }
-        >
-          {(a11y) => (
-            <Input
-              {...a11y}
-              value={values.name}
-              onChange={(e) => setField("name", e.target.value)}
-              placeholder="Website redesign"
-              autoFocus
-            />
-          )}
-        </Field>
-        {titleAI.titles.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-2" aria-live="polite">
-            {titleAI.titles.map((title) => (
-              <button
-                key={title}
-                type="button"
-                onClick={() => {
-                  setField("name", title);
-                  titleAI.clear();
-                }}
-                className="cursor-pointer rounded-full bg-twill-500/8 px-3 py-1 text-sm ring-1 ring-twill-500/25 transition hover:bg-twill-500/15"
-                title="Use this title"
-              >
-                {title}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={titleAI.clear}
-              className="cursor-pointer text-xs text-subtle hover:text-ink"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div>
-        <Field
-          label="Description"
-          error={errors.description}
-          hint={`${values.description.length}/2000`}
-          action={
-            aiEnabled && (
-              <AIButton
-                loading={descriptionAI.suggestion?.streaming}
-                disabled={!values.name.trim() && !values.description.trim()}
-                title={
-                  values.description.trim()
-                    ? "Polish the wording of this description"
-                    : values.name.trim()
-                      ? "Write a first draft from the project name"
-                      : "Type a project name or description first"
-                }
-                onClick={() =>
-                  descriptionAI.run({
-                    name: values.name,
-                    description: values.description,
-                    clientId: values.clientId,
-                    priority: values.priority,
-                    dueDate: values.dueDate,
-                  })
-                }
-              >
-                {values.description.trim() ? "Enhance" : "Draft from title"}
-              </AIButton>
-            )
-          }
-        >
-          {(a11y) => (
-            <Textarea
-              {...a11y}
-              value={values.description}
-              onChange={(e) => setField("description", e.target.value)}
-              placeholder="What does done look like?"
-              maxLength={2000}
-            />
-          )}
-        </Field>
-        {descriptionAI.suggestion && (
-          <DescriptionSuggestion
-            {...descriptionAI.suggestion}
-            onAccept={() => {
-              setField("description", descriptionAI.suggestion.text.slice(0, 2000));
-              descriptionAI.clear();
-            }}
-            onRetry={() =>
-              descriptionAI.run({
-                name: values.name,
-                description: values.description,
-                clientId: values.clientId,
-                priority: values.priority,
-                dueDate: values.dueDate,
-              })
-            }
-            onStop={descriptionAI.stop}
-            onDiscard={descriptionAI.clear}
+      <Field label="Project name" error={errors.name}>
+        {(a11y) => (
+          <Input
+            {...a11y}
+            value={values.name}
+            onChange={(e) => setField("name", e.target.value)}
+            placeholder="Website redesign"
+            autoFocus
           />
         )}
-      </div>
+      </Field>
+
+      <Field label="Description" error={errors.description} hint={`${values.description.length}/2000`}>
+        {(a11y) => (
+          <Textarea
+            {...a11y}
+            value={values.description}
+            onChange={(e) => setField("description", e.target.value)}
+            placeholder="What does done look like?"
+            maxLength={2000}
+          />
+        )}
+      </Field>
+
+      {(uploadsEnabled || files.length > 0) && (
+        <AttachmentPicker items={files} setItems={setFiles} />
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Client" error={errors.clientId}>
@@ -259,8 +201,8 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit" variant="brand" loading={submitting}>
-          {isEdit ? "Save changes" : "Create project"}
+        <Button type="submit" variant="brand" loading={submitting} disabled={uploading}>
+          {uploading ? "Uploading…" : isEdit ? "Save changes" : "Create project"}
         </Button>
       </div>
     </form>

@@ -8,7 +8,7 @@ const control =
 
 // Renders a label, the control (via render prop so it gets id/aria wiring),
 // an optional hint and an inline error message.
-// `action` renders beside the label (e.g. an AI button).
+// `action` renders beside the label (e.g. a small button).
 export function Field({ label, error, hint, optional = false, action, children, className = "" }) {
   const id = useId();
   const messageId = `${id}-message`;

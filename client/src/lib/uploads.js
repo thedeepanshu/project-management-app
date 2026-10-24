@@ -1,4 +1,16 @@
+import { DISCARD_UPLOADS } from "../graphql/documents";
+import { apolloClient } from "./apollo";
 import { ApiError, getAppConfig, postJSON } from "./api";
+
+/**
+ * Deletes files that were uploaded but never saved (e.g. the form was
+ * cancelled). Fire-and-forget; the server ignores files that are in use.
+ */
+export function discardUploads(files) {
+  const refs = files.filter(Boolean).map(({ publicId, resourceType }) => ({ publicId, resourceType }));
+  if (refs.length === 0) return;
+  apolloClient.mutate({ mutation: DISCARD_UPLOADS, variables: { files: refs } }).catch(() => {});
+}
 
 // Files go straight from the browser to Cloudinary using a short-lived
 // signature from our server, so large videos never pass through the API.

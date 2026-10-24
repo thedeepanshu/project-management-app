@@ -187,5 +187,11 @@ export const REMOVE_ATTACHMENT = gql`
   ${PROJECT_FIELDS}
 `;
 
+export const DISCARD_UPLOADS = gql`
+  mutation DiscardUploads($files: [UploadRefInput!]!) {
+    discardUploads(files: $files)
+  }
+`;
+
 // Active queries to refresh after any write, by operation name.
 export const REFRESH_ALL = ["GetProjects", "GetProject", "GetClients", "GetClient", "GetStats"];

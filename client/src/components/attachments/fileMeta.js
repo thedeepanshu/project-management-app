@@ -1,3 +1,11 @@
+/** Most files a single project can hold (matches the server limit). */
+export const MAX_FILES = 20;
+
+/** AttachmentPicker item for a file already saved on the project (edit mode). */
+export function savedItem(attachment) {
+  return { key: attachment.id, status: "saved", attachment, name: attachment.name, bytes: attachment.bytes };
+}
+
 // Formats Microsoft's free online viewer can display from a public URL.
 const OFFICE_VIEWER = new Set(["doc", "docx", "xls", "xlsx", "ppt", "pptx"]);
 
