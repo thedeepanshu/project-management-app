@@ -14,7 +14,10 @@ import { AttachmentPicker } from "../attachments/AttachmentPicker";
 import { savedItem } from "../attachments/fileMeta";
 import { PriorityIcon } from "../ui/Badges";
 import { Button } from "../ui/Button";
-import { Field, Input, Select, Textarea } from "../ui/Field";
+import { Avatar } from "../ui/Avatar";
+import { DatePicker } from "../ui/DatePicker";
+import { Dropdown } from "../ui/Dropdown";
+import { Field, Input, Textarea } from "../ui/Field";
 import { Segmented } from "../ui/Segmented";
 import { Skeleton } from "../ui/States";
 
@@ -155,22 +158,29 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Client" error={errors.clientId}>
           {(a11y) => (
-            <Select {...a11y} value={values.clientId} onChange={(e) => setField("clientId", e.target.value)}>
-              <option value="" disabled>
-                Choose a client…
-              </option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name}
-                  {client.company ? ` · ${client.company}` : ""}
-                </option>
-              ))}
-            </Select>
+            <Dropdown
+              {...a11y}
+              value={values.clientId}
+              onChange={(clientId) => setField("clientId", clientId)}
+              placeholder="Choose a client…"
+              searchable={clients.length > 6}
+              options={clients.map((client) => ({
+                value: client.id,
+                label: client.name,
+                description: client.company ?? client.email,
+                icon: <Avatar name={client.name} src={client.avatarThumbUrl} size="sm" />,
+              }))}
+            />
           )}
         </Field>
         <Field label="Due date" optional error={errors.dueDate}>
           {(a11y) => (
-            <Input {...a11y} type="date" value={values.dueDate} onChange={(e) => setField("dueDate", e.target.value)} />
+            <DatePicker
+              {...a11y}
+              value={values.dueDate}
+              onChange={(dueDate) => setField("dueDate", dueDate)}
+              placeholder="No deadline"
+            />
           )}
         </Field>
       </div>

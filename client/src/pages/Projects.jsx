@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { Columns3, FolderKanban, LayoutGrid, Plus, Search, SearchX, X } from "lucide-react";
+import { ArrowUpDown, Columns3, FolderKanban, Layers, LayoutGrid, Plus, Search, SearchX, X } from "lucide-react";
 import { useDeferredValue } from "react";
 import { useSearchParams } from "react-router";
 
@@ -7,7 +7,8 @@ import { PageHeader } from "../components/layout/PageHeader";
 import { ProjectBoard } from "../components/projects/ProjectBoard";
 import { ProjectCard } from "../components/projects/ProjectCard";
 import { Button } from "../components/ui/Button";
-import { Select } from "../components/ui/Field";
+import { PriorityIcon } from "../components/ui/Badges";
+import { Dropdown } from "../components/ui/Dropdown";
 import { Segmented } from "../components/ui/Segmented";
 import { EmptyState, ErrorState, Skeleton } from "../components/ui/States";
 import { useWorkspace } from "../context/workspace";
@@ -102,31 +103,35 @@ export default function Projects() {
         </label>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Select
-            aria-label="Filter by priority"
-            value={priority}
-            onChange={(e) => setParam("priority", e.target.value, "ALL")}
-            className="w-40 [&_select]:h-10 [&_select]:text-sm"
-          >
-            <option value="ALL">All priorities</option>
-            {PRIORITIES.map((p) => (
-              <option key={p.value} value={p.value}>
-                {p.label} priority
-              </option>
-            ))}
-          </Select>
-          <Select
-            aria-label="Sort projects"
-            value={sort}
-            onChange={(e) => setParam("sort", e.target.value, "newest")}
-            className="w-40 [&_select]:h-10 [&_select]:text-sm"
-          >
-            {Object.entries(SORTS).map(([key, { label }]) => (
-              <option key={key} value={key}>
-                {label}
-              </option>
-            ))}
-          </Select>
+          <div className="w-44">
+            <Dropdown
+              size="sm"
+              aria-label="Filter by priority"
+              value={priority}
+              onChange={(value) => setParam("priority", value, "ALL")}
+              options={[
+                { value: "ALL", label: "All priorities", icon: <Layers className="size-4 text-subtle" /> },
+                ...PRIORITIES.map((p) => ({
+                  value: p.value,
+                  label: `${p.label} priority`,
+                  icon: <PriorityIcon priority={p.value} className={`size-4 ${p.color}`} />,
+                })),
+              ]}
+            />
+          </div>
+          <div className="w-44">
+            <Dropdown
+              size="sm"
+              aria-label="Sort projects"
+              value={sort}
+              onChange={(value) => setParam("sort", value, "newest")}
+              options={Object.entries(SORTS).map(([key, { label }]) => ({
+                value: key,
+                label,
+                icon: <ArrowUpDown className="size-4 text-subtle" />,
+              }))}
+            />
+          </div>
           <Segmented
             label="View"
             value={view}

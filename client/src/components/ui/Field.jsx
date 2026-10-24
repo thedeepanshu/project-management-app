@@ -1,4 +1,4 @@
-import { ChevronDown, CircleAlert } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 import { useId } from "react";
 
 const control =
@@ -45,15 +45,4 @@ export function Input(props) {
 
 export function Textarea(props) {
   return <textarea className={`${control} min-h-28 resize-y py-2.5 leading-relaxed`} {...props} />;
-}
-
-export function Select({ children, className = "", ...props }) {
-  return (
-    <div className={`relative ${className}`}>
-      <select className={`${control} h-11 cursor-pointer appearance-none pr-10`} {...props}>
-        {children}
-      </select>
-      <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-subtle" />
-    </div>
-  );
 }

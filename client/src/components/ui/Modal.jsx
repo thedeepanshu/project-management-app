@@ -4,6 +4,10 @@ import { useEffect, useId, useRef } from "react";
 // Built on the native <dialog>: focus trapping, Esc-to-close, inert background
 // and top-layer stacking come from the browser. Children only mount while open,
 // so forms inside always start fresh.
+//
+// The dialog itself never scrolls (that put the scrollbar on the rounded outer
+// edge). The header stays fixed and only the body scrolls, inset from the edge.
+// overflow-clip (not hidden) so focusing a field can't scroll the header away.
 export function Modal({ open, onClose, title, description, children, size = "md" }) {
   const ref = useRef(null);
   const titleId = useId();
@@ -20,7 +24,7 @@ export function Modal({ open, onClose, title, description, children, size = "md"
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
-      className={`m-auto w-[calc(100%-2rem)] ${{ sm: "max-w-md", md: "max-w-xl", lg: "max-w-5xl" }[size]} rounded-3xl bg-surface p-0 text-ink shadow-lift ring-1 ring-line
+      className={`m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] ${{ sm: "max-w-md", md: "max-w-xl", lg: "max-w-5xl" }[size]} overflow-clip rounded-3xl bg-surface p-0 text-ink shadow-lift ring-1 ring-line
         opacity-0 translate-y-3 scale-[0.98] transition-all transition-discrete duration-200 ease-out
         open:opacity-100 open:translate-y-0 open:scale-100
         starting:open:opacity-0 starting:open:translate-y-3 starting:open:scale-[0.98]
@@ -29,8 +33,8 @@ export function Modal({ open, onClose, title, description, children, size = "md"
         starting:open:backdrop:bg-black/0`}
     >
       {open && (
-        <div className="p-6 sm:p-7">
-          <div className="mb-6 flex items-start justify-between gap-4">
+        <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
+          <header className="flex shrink-0 items-start justify-between gap-4 px-6 pt-6 pb-5 sm:px-7 sm:pt-7">
             <div>
               <h2 id={titleId} className="font-display text-xl font-bold tracking-tight">
                 {title}
@@ -45,8 +49,11 @@ export function Modal({ open, onClose, title, description, children, size = "md"
             >
               <X className="size-5" />
             </button>
+          </header>
+          {/* Inset by mr/mb so the scrollbar stays clear of the rounded corners. */}
+          <div className="scroll-soft mr-1.5 mb-3 min-h-0 overflow-y-auto pt-1 pr-4.5 pb-3 pl-6 sm:pr-5.5 sm:pl-7">
+            {children}
           </div>
-          {children}
         </div>
       )}
     </dialog>

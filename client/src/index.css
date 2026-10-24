@@ -111,6 +111,14 @@
     background-image: repeating-linear-gradient(-45deg, var(--twill-rib) 0 1px, transparent 1px 11px);
   }
 
+  /* Thin, theme-coloured scrollbar for scrolling panels (modal bodies, menus). */
+  .scroll-soft {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+  }
+
   .text-gradient {
     @apply bg-linear-to-r from-twill-500 via-twill-400 to-thread-500 bg-clip-text text-transparent;
   }
