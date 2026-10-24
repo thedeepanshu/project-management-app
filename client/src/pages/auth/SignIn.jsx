@@ -36,7 +36,9 @@ export default function SignIn() {
       ? "Password updated. Sign in with your new password."
       : params.has("deleted")
         ? "Your account and all its data were deleted."
-        : null;
+        : params.has("signedout")
+          ? "You’ve signed out. See you soon."
+          : null;
 
   async function onSubmit(event) {
     event.preventDefault();

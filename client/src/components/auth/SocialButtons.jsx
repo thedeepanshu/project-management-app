@@ -1,5 +1,6 @@
 import { LoaderCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { useAppConfig } from "../../hooks/useAppConfig";
 import { authClient, authErrorMessage } from "../../lib/authClient";
@@ -13,6 +14,21 @@ export function SocialButtons({ next = "/", onError, label = "Continue with", di
   const { auth } = useAppConfig();
   const [pending, setPending] = useState(null);
   const providers = auth.providers.filter((id) => PROVIDERS[id]);
+
+  // Pressing Back on the provider’s page restores this page from the browser’s
+  // back/forward cache exactly as it was left: spinner on, buttons disabled.
+  // Reset it so the user can pick again.
+  useEffect(() => {
+    if (!pending) return;
+    function onPageShow(event) {
+      if (!event.persisted) return;
+      setPending(null);
+      toast.info(`${PROVIDERS[pending].label} sign-in was cancelled`, { id: "oauth-cancelled" });
+    }
+    window.addEventListener("pageshow", onPageShow);
+    return () => window.removeEventListener("pageshow", onPageShow);
+  }, [pending]);
+
   if (providers.length === 0) return null;
 
   async function start(provider) {

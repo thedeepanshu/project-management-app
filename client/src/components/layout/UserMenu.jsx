@@ -1,12 +1,13 @@
-import { useApolloClient } from "@apollo/client/react";
 import { ChevronsUpDown, LogOut, Moon, Settings, Sun } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { POPOVER_PANEL, usePopover } from "../../hooks/usePopover";
 import { useTheme } from "../../hooks/useTheme";
 import { authClient } from "../../lib/authClient";
 import { photoThumb } from "../../lib/images";
+import { SigningOut } from "../auth/SigningOut";
 import { Avatar } from "../ui/Avatar";
 
 const ITEM =
@@ -18,17 +19,28 @@ export function UserMenu({ compact = false }) {
   const { anchorRef, popoverRef, open, show, hide } = usePopover({ matchWidth: !compact });
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const apollo = useApolloClient();
   const [signingOut, setSigningOut] = useState(false);
   const user = session?.user;
   if (!user) return null;
 
   async function signOut() {
+    hide();
     setSigningOut(true);
-    await authClient.signOut();
-    // Nothing from this workspace may stay in memory for the next person.
-    await apollo.clearStore();
-    navigate("/sign-in", { replace: true });
+    try {
+      // A plain request, not authClient.signOut(): that updates the session store
+      // at once, re-rendering this signed-in page (whose queries then fail) before
+      // we leave. Leaving with a full page load also wipes every cached project
+      // and client from memory, so nothing stays behind for the next person.
+      const [response] = await Promise.all([
+        fetch("/api/auth/sign-out", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" }),
+        new Promise((resolve) => setTimeout(resolve, 500)), // long enough to read, not to wait on
+      ]);
+      if (!response.ok) throw new Error("Sign-out failed");
+      window.location.replace("/sign-in?signedout=1");
+    } catch {
+      setSigningOut(false);
+      toast.error("Couldn’t sign out. Check your connection and try again.", { id: "sign-out-failed" });
+    }
   }
 
   function go(path) {
@@ -90,10 +102,11 @@ export function UserMenu({ compact = false }) {
             onClick={signOut}
             disabled={signingOut}
           >
-            <LogOut className="size-4" /> {signingOut ? "Signing out…" : "Sign out"}
+            <LogOut className="size-4" /> Sign out
           </button>
         </div>
       </div>
+      <SigningOut open={signingOut} />
     </>
   );
 }
