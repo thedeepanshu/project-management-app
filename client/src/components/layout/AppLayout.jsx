@@ -122,7 +122,9 @@ export function AppLayout() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (!params.has("verified")) return;
-    toast.success("Email verified. Welcome to Twillboard!");
+    // Fixed id: effects can run twice (React StrictMode in development), and
+    // sonner shows a toast with the same id only once.
+    toast.success("Email verified. Welcome to Twillboard!", { id: "email-verified" });
     params.delete("verified");
     const search = params.toString();
     navigate(location.pathname + (search ? `?${search}` : ""), { replace: true });

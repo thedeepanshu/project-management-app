@@ -381,8 +381,8 @@ export default function Account() {
     fetchSecurity().then((result) => active && apply(result));
     // Coming back from connecting a provider.
     const params = new URLSearchParams(window.location.search);
-    if (params.has("linked")) toast.success("Account connected");
-    if (params.get("error")) toast.error("That account couldn't be connected. It may already be linked to another Twillboard account.");
+    if (params.has("linked")) toast.success("Account connected", { id: "account-linked" });
+    if (params.get("error")) toast.error("That account couldn't be connected. It may already be linked to another Twillboard account.", { id: "account-link-error" });
     return () => {
       active = false;
     };
