@@ -25,7 +25,7 @@ export function ClientFields({ draft }) {
         error={errors.avatarUrl}
       />
       <Field label="Full name" error={errors.name}>
-        {(a11y) => <Input {...a11y} {...bind("name")} placeholder="Ada Lovelace" autoComplete="name" autoFocus />}
+        {(a11y) => <Input {...a11y} {...bind("name")} placeholder="Ada Lovelace" autoComplete="name" data-autofocus />}
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Email" error={errors.email}>

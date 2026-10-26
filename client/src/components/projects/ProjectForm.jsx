@@ -42,7 +42,7 @@ export function ProjectFields({ draft, clientField, nameRef, autoFocus = true })
             value={values.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder="Website redesign"
-            autoFocus={autoFocus}
+            data-autofocus={autoFocus || undefined}
           />
         )}
       </Field>
