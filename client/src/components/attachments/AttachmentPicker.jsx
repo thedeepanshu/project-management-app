@@ -1,4 +1,4 @@
-import { CircleAlert, Paperclip, X } from "lucide-react";
+import { CircleAlert, Paperclip, RotateCw, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -14,7 +14,7 @@ function kindOf(file) {
   return "DOCUMENT";
 }
 
-function Row({ item, onRemove }) {
+function Row({ item, onRemove, onRetry }) {
   const preview = item.attachment?.thumbnailUrl ?? item.previewUrl;
   const [previewFailed, setPreviewFailed] = useState(false);
   const iconFile = item.attachment ?? { kind: item.kind, name: item.name, format: null };
@@ -46,6 +46,16 @@ function Row({ item, onRemove }) {
           </p>
         )}
       </div>
+      {item.status === "error" && item.file && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-twill-700 ring-1 ring-twill-500/30 transition hover:bg-twill-500/10 dark:text-twill-300"
+          aria-label={`Retry ${item.name}`}
+        >
+          <RotateCw className="size-3.5" /> Retry
+        </button>
+      )}
       <button
         type="button"
         onClick={onRemove}
@@ -81,16 +91,30 @@ export function AttachmentPicker({ items, setItems }) {
 
   const patch = (key, changes) => setItems((list) => list.map((item) => (item.key === key ? { ...item, ...changes } : item)));
 
-  async function startUpload(file) {
+  function startUpload(file) {
     const key = crypto.randomUUID();
     const controller = new AbortController();
     const kind = kindOf(file);
     const previewUrl = kind === "IMAGE" ? URL.createObjectURL(file) : null;
+    // The File is kept so a failed upload can be retried without picking it again.
     setItems((list) => [
       ...list,
-      { key, status: "uploading", progress: 0, name: file.name, bytes: file.size, kind, previewUrl, controller },
+      { key, status: "uploading", progress: 0, name: file.name, bytes: file.size, kind, previewUrl, controller, file },
     ]);
+    upload(key, file, controller);
+  }
 
+  function retry(item) {
+    if (count >= MAX_FILES) {
+      toast.error(`A project can have at most ${MAX_FILES} files.`);
+      return;
+    }
+    const controller = new AbortController();
+    patch(item.key, { status: "uploading", progress: 0, error: null, controller });
+    upload(item.key, item.file, controller);
+  }
+
+  async function upload(key, file, controller) {
     try {
       const input = await uploadFile(file, "attachment", {
         onProgress: (progress) => patch(key, { progress }),
@@ -183,13 +207,13 @@ export function AttachmentPicker({ items, setItems }) {
       {items.length > 0 && (
         <ul className="mt-2 max-h-64 space-y-2 overflow-y-auto" aria-live="polite">
           {items.map((item) => (
-            <Row key={item.key} item={item} onRemove={() => remove(item)} />
+            <Row key={item.key} item={item} onRemove={() => remove(item)} onRetry={() => retry(item)} />
           ))}
         </ul>
       )}
       {items.some((item) => item.status === "error") && (
         <p className="mt-2 flex items-center gap-1.5 text-[13px] text-red-600 dark:text-red-400">
-          <CircleAlert className="size-3.5" /> Failed files won't be saved. Remove them or try uploading again.
+          <CircleAlert className="size-3.5" /> Failed files won't be saved. Retry them, or remove them.
         </p>
       )}
     </div>
