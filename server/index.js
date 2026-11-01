@@ -88,22 +88,18 @@ app.use((req, _res, next) => {
 // Better Auth handles its own body parsing, so it's mounted before any JSON parser.
 app.all("/api/auth/{*splat}", toNodeHandler(auth));
 
-// GraphQL bodies are small; refuse anything large before parsing it. The
-// check relies on Content-Length (Node won't read past it), so a POST must
-// declare one: a chunked body without it could be any size. Browsers always
-// send it for fetch() with a string body.
-const MAX_GRAPHQL_BYTES = 100_000;
-app.use(yoga.graphqlEndpoint, (req, res, next) => {
-  if (req.method !== "POST") return next();
-  const declared = req.headers["content-length"];
-  if (declared === undefined) {
-    return res.status(411).json({ errors: [{ message: "Content-Length required" }] });
-  }
-  if (!/^\d+$/.test(declared) || Number(declared) > MAX_GRAPHQL_BYTES) {
-    return res.status(413).json({ errors: [{ message: "Request too large" }] });
-  }
-  next();
-});
+// GraphQL bodies are small; refuse anything large. express.json counts bytes
+// as they arrive and stops at the limit, so this holds whether or not the
+// request (or a proxy in front of us) sends Content-Length. Yoga then uses
+// the parsed body instead of reading the stream again.
+const parseGraphqlBody = express.json({ limit: "100kb" });
+app.use(yoga.graphqlEndpoint, (req, res, next) =>
+  parseGraphqlBody(req, res, (error) => {
+    if (error?.type === "entity.too.large") return res.status(413).json({ errors: [{ message: "Request too large" }] });
+    if (error) return res.status(400).json({ errors: [{ message: "Invalid JSON body" }] });
+    next();
+  })
+);
 app.use(yoga.graphqlEndpoint, yoga);
 app.use("/api", api);
 
