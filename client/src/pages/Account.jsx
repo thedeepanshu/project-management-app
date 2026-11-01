@@ -80,6 +80,14 @@ function ProfileSection({ user }) {
   );
 }
 
+// Error codes Better Auth adds to the URL when connecting a provider fails.
+const LINK_ERRORS = {
+  account_already_linked_to_different_user: "That account is already connected to a different Twillboard account.",
+  email_does_not_match: "That account uses a different email address from this one.",
+  access_denied: "Connecting was cancelled at the provider.",
+  default: "That account couldn't be connected. Please try again.",
+};
+
 function SignInMethods({ accounts, reload }) {
   const { auth } = useAppConfig();
   const [busy, setBusy] = useState(null);
@@ -88,7 +96,12 @@ function SignInMethods({ accounts, reload }) {
 
   async function connect(provider) {
     setBusy(provider);
-    const { error } = await authClient.linkSocial({ provider, callbackURL: "/account?linked=1" });
+    const { error } = await authClient.linkSocial({
+      provider,
+      callbackURL: "/account?linked=1",
+      // Better Auth appends ?error=<code>; without this, failures land on its own error page.
+      errorCallbackURL: "/account",
+    });
     if (error) {
       setBusy(null);
       toast.error(authErrorMessage(error));
@@ -383,8 +396,11 @@ export default function Account() {
     fetchSecurity().then((result) => active && apply(result));
     // Coming back from connecting a provider.
     const params = new URLSearchParams(window.location.search);
-    if (params.has("linked")) toast.success("Account connected", { id: "account-linked" });
-    if (params.get("error")) toast.error("That account couldn't be connected. It may already be linked to another Twillboard account.", { id: "account-link-error" });
+    const linkError = params.get("error");
+    if (linkError) toast.error(LINK_ERRORS[linkError] ?? LINK_ERRORS.default, { id: "account-link-error" });
+    else if (params.has("linked")) toast.success("Account connected", { id: "account-linked" });
+    // Shown once: a refresh shouldn't repeat it.
+    if (linkError || params.has("linked")) window.history.replaceState(window.history.state, "", window.location.pathname);
     return () => {
       active = false;
     };

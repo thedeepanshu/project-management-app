@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import Client from "../models/Client.js";
 import Project, { MAX_ATTACHMENTS } from "../models/Project.js";
 import { destroyAsset, isOwnAsset, transformUrl, uploadsEnabled, userFolder } from "../services/cloudinary.js";
@@ -42,7 +44,7 @@ function assertUploadedFiles(files, existingCount, ownerId) {
   }
   const folder = userFolder(ownerId, "attachment");
   for (const file of files) {
-    if (!isOwnAsset(file, folder) || !["image", "video", "raw"].includes(file.resourceType)) {
+    if (!isOwnAsset(file, folder)) {
       throw badInput(`“${file.name}” wasn't uploaded through Twillboard. Please upload it again.`);
     }
   }
@@ -293,6 +295,7 @@ export const resolvers = {
       // so this can never remove a file that's saved or belongs to someone else.
       const attachmentFolder = `${userFolder(ownerId, "attachment")}/`;
       const avatarFolder = `${userFolder(ownerId, "avatar")}/`;
+      const profileFolder = `${userFolder(ownerId, "profile")}/`;
       await Promise.all(
         files.slice(0, 50).map(async ({ publicId, resourceType }) => {
           if (!["image", "video", "raw"].includes(resourceType)) return;
@@ -302,6 +305,12 @@ export const resolvers = {
             }
           } else if (publicId.startsWith(avatarFolder)) {
             if (!(await Client.exists({ ownerId, avatarPublicId: publicId }))) await destroyAsset(publicId, "image");
+          } else if (publicId.startsWith(profileFolder)) {
+            // A profile photo that was uploaded but never saved on the account.
+            const user = await mongoose.connection.db
+              .collection("user")
+              .findOne({ _id: new mongoose.Types.ObjectId(ownerId) }, { projection: { imagePublicId: 1 } });
+            if (user?.imagePublicId !== publicId) await destroyAsset(publicId, "image");
           }
         })
       );

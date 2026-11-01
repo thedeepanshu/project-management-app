@@ -10,6 +10,7 @@ import { styleText } from "node:util";
 
 import { CLIENT_IP_HEADER, enabledProviders, getSessionUser, initAuth } from "./auth/auth.js";
 import { connectDB, disconnectDB } from "./config/db.js";
+import { runMigrations } from "./config/migrations.js";
 import env from "./config/env.js";
 import { createLoaders } from "./graphql/loaders.js";
 import { schema } from "./graphql/schema.js";
@@ -22,6 +23,7 @@ const clientDist = fileURLToPath(new URL("../client/dist", import.meta.url));
 
 // Auth needs the database connection, so connect before building the app.
 await connectDB();
+await runMigrations();
 const auth = initAuth();
 
 const yoga = createYoga({
@@ -86,9 +88,18 @@ app.use((req, _res, next) => {
 // Better Auth handles its own body parsing, so it's mounted before any JSON parser.
 app.all("/api/auth/{*splat}", toNodeHandler(auth));
 
-// GraphQL bodies are small; refuse anything large before parsing it.
+// GraphQL bodies are small; refuse anything large before parsing it. The
+// check relies on Content-Length (Node won't read past it), so a POST must
+// declare one: a chunked body without it could be any size. Browsers always
+// send it for fetch() with a string body.
+const MAX_GRAPHQL_BYTES = 100_000;
 app.use(yoga.graphqlEndpoint, (req, res, next) => {
-  if (Number(req.headers["content-length"] ?? 0) > 100_000) {
+  if (req.method !== "POST") return next();
+  const declared = req.headers["content-length"];
+  if (declared === undefined) {
+    return res.status(411).json({ errors: [{ message: "Content-Length required" }] });
+  }
+  if (!/^\d+$/.test(declared) || Number(declared) > MAX_GRAPHQL_BYTES) {
     return res.status(413).json({ errors: [{ message: "Request too large" }] });
   }
   next();

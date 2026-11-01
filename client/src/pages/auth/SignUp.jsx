@@ -20,9 +20,12 @@ function validateSignUp({ name, email, password }, { min, max }) {
   if (name.trim().length < 2) errors.name = "Please enter your name";
   else if (name.trim().length > 80) errors.name = "Name must be at most 80 characters";
   if (!EMAIL.test(email.trim())) errors.email = "Please enter a valid email address";
+  // The part before @, if it's long enough to be guessable: "a" or "" would
+  // match almost any password.
+  const emailName = email.trim().split("@")[0].toLowerCase();
   if (password.length < min) errors.password = `Use at least ${min} characters`;
   else if (password.length > max) errors.password = `Use at most ${max} characters`;
-  else if (email.trim() && password.toLowerCase().includes(email.trim().split("@")[0].toLowerCase())) {
+  else if (emailName.length >= 4 && password.toLowerCase().includes(emailName)) {
     errors.password = "Don't include your email name in the password";
   }
   return errors;

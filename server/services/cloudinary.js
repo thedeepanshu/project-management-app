@@ -38,15 +38,23 @@ export function signUpload(purpose, userId) {
   };
 }
 
-/** True when the URL and public id point at a file we uploaded into `folder`. */
-export function isOwnAsset({ url, publicId }, folder) {
-  return (
-    uploadsEnabled &&
-    typeof url === "string" &&
-    url.startsWith(`https://res.cloudinary.com/${config.cloud_name}/`) &&
-    typeof publicId === "string" &&
-    publicId.startsWith(`${folder}/`)
+const RESOURCE_TYPES = ["image", "video", "raw"];
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * True when `publicId` is in `folder` and `url` is that very file, as Cloudinary
+ * returns it after an upload: .../<cloud>/<resourceType>/upload/v<version>/<publicId>.<ext>
+ * Checking them separately would let a valid id be paired with someone else's URL.
+ */
+export function isOwnAsset({ url, publicId, resourceType = "image" }, folder) {
+  if (!uploadsEnabled || typeof url !== "string" || typeof publicId !== "string") return false;
+  if (!publicId.startsWith(`${folder}/`) || publicId.includes("..")) return false;
+  if (!RESOURCE_TYPES.includes(resourceType)) return false;
+  const expected = new RegExp(
+    `^https://res\\.cloudinary\\.com/${escapeRegExp(config.cloud_name)}/${resourceType}/upload/(v\\d+/)?` +
+      `${escapeRegExp(publicId)}(\\.[A-Za-z0-9]+)?$`
   );
+  return expected.test(url);
 }
 
 /** Deletes a file from Cloudinary. Best effort: a failure is logged, never thrown. */
@@ -56,6 +64,16 @@ export async function destroyAsset(publicId, resourceType = "image") {
     await cloudinary.uploader.destroy(publicId, { resource_type: resourceType, invalidate: true });
   } catch (error) {
     console.warn(`⚠ Couldn't delete Cloudinary asset ${publicId}: ${error.message}`);
+  }
+}
+
+/** Deletes every image in a folder made by userFolder(). Best effort, like destroyAsset. */
+export async function destroyFolder(folder) {
+  if (!uploadsEnabled || !/^twillboard\/users\/[A-Za-z0-9_-]+\/[a-z]+$/.test(folder)) return;
+  try {
+    await cloudinary.api.delete_resources_by_prefix(`${folder}/`, { resource_type: "image", invalidate: true });
+  } catch (error) {
+    console.warn(`⚠ Couldn't delete Cloudinary folder ${folder}: ${error.error?.message ?? error.message}`);
   }
 }
 

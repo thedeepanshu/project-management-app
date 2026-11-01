@@ -1,6 +1,6 @@
 import { useMutation } from "@apollo/client/react";
 import { CircleAlert, Paperclip, Play, RotateCw, Trash2, UploadCloud, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ADD_ATTACHMENTS, REMOVE_ATTACHMENT } from "../../graphql/documents";
@@ -119,6 +119,21 @@ export function AttachmentsCard({ project }) {
     refetchQueries: ["GetProjects"],
   });
 
+  // Leaving the page: a file that uploaded but was never saved on the project
+  // (its save failed, and it wasn't retried or dismissed) would be orphaned.
+  const uploadsRef = useRef(uploads);
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    uploadsRef.current = uploads;
+  }, [uploads]);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      discardUploads(uploadsRef.current.filter((upload) => upload.error && upload.uploaded).map((upload) => upload.uploaded));
+    };
+  }, []);
+
   const files = project.attachments;
   const canUpload = uploadConfig.enabled;
   if (!canUpload && files.length === 0) return null;
@@ -149,6 +164,8 @@ export function AttachmentsCard({ project }) {
       dropUpload(id);
     } catch (error) {
       if (error.name === "AbortError") return dropUpload(id);
+      // Failed after the page was left: nobody can retry it, so clean up.
+      if (unmountedRef.current) return discardUploads([uploaded]);
       // Upload failures carry their own message; save failures come from GraphQL.
       patchUpload(id, { error: error instanceof ApiError ? error.message : parseApolloError(error).message });
     }

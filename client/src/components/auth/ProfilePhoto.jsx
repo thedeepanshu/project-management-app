@@ -6,7 +6,7 @@ import { useAppConfig } from "../../hooks/useAppConfig";
 import { postJSON } from "../../lib/api";
 import { authClient } from "../../lib/authClient";
 import { photoThumb } from "../../lib/images";
-import { AVATAR_ACCEPT, formatBytes, uploadFile } from "../../lib/uploads";
+import { AVATAR_ACCEPT, discardUploads, formatBytes, uploadFile } from "../../lib/uploads";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 
@@ -27,12 +27,15 @@ export function ProfilePhoto({ user }) {
     if (file.size > MAX_BYTES) return toast.error(`That photo is ${formatBytes(file.size)}; the limit is 5 MB.`);
 
     setProgress(0);
+    let uploaded = null;
     try {
-      const uploaded = await uploadFile(file, "profile", { onProgress: setProgress });
+      uploaded = await uploadFile(file, "profile", { onProgress: setProgress });
       await postJSON("/api/profile/photo", { url: uploaded.url, publicId: uploaded.publicId });
       await refetch();
       toast.success("Profile photo updated");
     } catch (error) {
+      // Uploaded but not saved on the account: don't leave the file behind.
+      if (uploaded) discardUploads([{ publicId: uploaded.publicId, resourceType: "image" }]);
       toast.error(error.message ?? "Couldn't update your photo. Please try again.");
     } finally {
       setProgress(null);

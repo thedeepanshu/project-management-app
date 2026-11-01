@@ -12,10 +12,14 @@ import { Field, Input } from "../../components/ui/Field";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { authClient, authErrorMessage, safeNext } from "../../lib/authClient";
 
+// Error codes Better Auth adds to the URL when a provider sign-in fails.
 const OAUTH_ERRORS = {
   oauth: "Sign-in with that provider didn't complete. Please try again.",
   account_not_linked:
     "That email already has an account. Sign in the way you did before, then link this provider in Account settings.",
+  access_denied: "Sign-in was cancelled at the provider.",
+  email_not_found: "That provider didn't share an email address, so we couldn't sign you in.",
+  email_not_verified: "That provider hasn't verified your email address yet. Verify it there, then try again.",
 };
 
 export default function SignIn() {
@@ -27,7 +31,10 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(() => OAUTH_ERRORS[params.get("error")] ?? (params.get("error") ? OAUTH_ERRORS.oauth : null));
+  const [error, setError] = useState(() => {
+    const code = params.get("error");
+    return code ? (OAUTH_ERRORS[code] ?? OAUTH_ERRORS.oauth) : null;
+  });
   const [unverified, setUnverified] = useState(false);
 
   const notice = params.has("expired")

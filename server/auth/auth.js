@@ -6,7 +6,7 @@ import { haveIBeenPwned } from "better-auth/plugins";
 import mongoose from "mongoose";
 
 import env from "../config/env.js";
-import { destroyAsset } from "../services/cloudinary.js";
+import { destroyFolder, userFolder } from "../services/cloudinary.js";
 import { sendExistingAccountEmail, sendPasswordResetEmail, sendVerificationEmail } from "../services/mailer.js";
 import { deleteAllUserData } from "./userData.js";
 
@@ -45,8 +45,19 @@ function withVerifiedFlag(url) {
 }
 
 let auth = null;
-// Profile photos to delete once their account deletion has completed.
-const pendingPhotoDeletes = new Map();
+
+// The only requests allowed to set a user's `image`: OAuth sign-ins, which copy
+// the provider's profile picture. Anything else (sign-up, update-user, ...)
+// would let a user point their avatar at any URL. Uploaded photos are saved by
+// POST /api/profile/photo, which writes to the database directly.
+// (Better Auth merges a hook's `data` into the original, so a field must be
+// overridden; leaving it out changes nothing.)
+const OAUTH_CALLBACK = /^\/(oauth2\/)?callback\//;
+const imageAllowed = (data, ctx) => data.image == null || !ctx?.path || OAUTH_CALLBACK.test(ctx.path);
+// New account: keep the account, drop the photo.
+const createWithoutUnsafeImage = async (user, ctx) => (imageAllowed(user, ctx) ? undefined : { data: { image: null } });
+// Update: refuse the write. (/update-user already answers 400 before this.)
+const updateWithoutUnsafeImage = async (user, ctx) => (imageAllowed(user, ctx) ? undefined : false);
 
 /** Builds the auth instance on the app's MongoDB connection (call after connectDB). */
 export function initAuth() {
@@ -115,21 +126,24 @@ export function initAuth() {
       },
       deleteUser: {
         enabled: true,
-        // `imagePublicId` isn't returned on user objects, so read it before the
-        // account is deleted, then clean up after the deletion succeeds.
-        beforeDelete: async (user) => {
-          const doc = await client
-            .db(mongoose.connection.name)
-            .collection("user")
-            .findOne({ _id: new mongoose.Types.ObjectId(user.id) }, { projection: { imagePublicId: 1 } });
-          pendingPhotoDeletes.set(user.id, doc?.imagePublicId);
-        },
-        // Remove everything the user owns: projects, clients, their files and the profile photo.
+        // Remove everything the user owns: projects, clients, their files and
+        // the profile-photo folder. Each step runs even if another one fails.
         afterDelete: async (user) => {
-          await deleteAllUserData(user.id);
-          await destroyAsset(pendingPhotoDeletes.get(user.id));
-          pendingPhotoDeletes.delete(user.id);
+          const results = await Promise.allSettled([
+            deleteAllUserData(user.id),
+            destroyFolder(userFolder(user.id, "profile")),
+          ]);
+          for (const result of results) {
+            if (result.status === "rejected") console.error(`✖ Cleanup after deleting user ${user.id} failed:`, result.reason);
+          }
         },
+      },
+    },
+
+    databaseHooks: {
+      user: {
+        create: { before: createWithoutUnsafeImage },
+        update: { before: updateWithoutUnsafeImage },
       },
     },
 

@@ -36,7 +36,8 @@ export function SocialButtons({ next = "/", onError, label = "Continue with", di
     const { error } = await authClient.signIn.social({
       provider,
       callbackURL: next,
-      errorCallbackURL: "/sign-in?error=oauth",
+      // Better Auth appends ?error=<code> itself, so this URL must not carry one.
+      errorCallbackURL: next === "/" ? "/sign-in" : `/sign-in?next=${encodeURIComponent(next)}`,
     });
     // On success the browser is already navigating to the provider.
     if (error) {
