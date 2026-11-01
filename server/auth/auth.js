@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { fromNodeHeaders } from "better-auth/node";
+import { waitUntil } from "@vercel/functions";
 import { haveIBeenPwned } from "better-auth/plugins";
 import mongoose from "mongoose";
 
@@ -178,6 +179,9 @@ export function initAuth() {
     },
 
     advanced: {
+      // Work Better Auth runs after responding must finish on Vercel too, where
+      // a function can be frozen once the response is sent. (No-op elsewhere.)
+      backgroundTasks: { handler: waitUntil },
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },
       cookiePrefix: "twillboard",
       useSecureCookies: env.isProduction,

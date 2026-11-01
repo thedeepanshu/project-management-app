@@ -1,3 +1,4 @@
+import { waitUntil } from "@vercel/functions";
 import nodemailer from "nodemailer";
 import { styleText } from "node:util";
 
@@ -57,7 +58,9 @@ async function send({ to, subject, ...content }) {
  * so response timing can't be used to tell whether an account exists.
  */
 function dispatch(message) {
-  send(message).catch((error) => {
+  // On Vercel, waitUntil keeps the function alive until the email is sent;
+  // elsewhere it's a no-op and the promise simply runs on.
+  const sending = send(message).catch((error) => {
     console.error(`✖ Email to ${message.to} failed: ${error.message.split("\n")[0]}`);
     if (error.responseCode === 535) {
       console.error("  Gmail rejected SMTP_USER/SMTP_PASS. SMTP_PASS must be a 16-letter app password");
@@ -68,6 +71,7 @@ function dispatch(message) {
       console.log(styleText("cyan", `  Link (printed because sending failed): ${message.url}\n`));
     }
   });
+  waitUntil(sending);
 }
 
 /** Checks the Gmail login at startup, so a bad password shows up immediately. */

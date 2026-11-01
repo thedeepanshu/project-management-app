@@ -66,7 +66,7 @@ A calm, fast project manager for freelancers and small studios — built with Re
 
 ### Architecture notes
 
-- **One deployable.** In production, Express serves both `/graphql` and the built React app.
+- **One app, two ways to run it.** On Vercel, the React build is served from the CDN and the whole API runs as one Vercel Function (`api/index.js`) on the same domain. On a plain server, `npm start` serves both from Express.
 - **Same-origin in development.** Vite proxies `/graphql` and `/api` to the API, so the session cookie is first-party and there's no CORS setup to fight.
 - **Typed enums end to end.** `ProjectStatus` / `ProjectPriority` are GraphQL enums mapped to the strings stored in MongoDB.
 - **Safe errors.** Validation, bad IDs and duplicate emails become `BAD_USER_INPUT` errors with per-field messages; unexpected errors are masked in production.
@@ -144,6 +144,18 @@ Each provider is optional; its button appears once both values are in `.env`. Re
 | `CLIENT_ORIGIN` | | Extra comma-separated origins allowed by CORS, if the app is hosted on a separate domain |
 | `CLOUDINARY_URL` | | Enables attachments and photo uploads. Free account at [cloudinary.com](https://cloudinary.com) |
 
+## Deploying to Vercel
+
+Everything runs in one Vercel project on one domain: the React app from the CDN, and `/api/*` + `/graphql` from a single Vercel Function (`api/index.js`, configured in [`vercel.json`](vercel.json)). Same origin means the session cookie is first-party and there's no CORS to configure.
+
+1. **Atlas → Network Access:** allow `0.0.0.0/0` (Vercel's IPs aren't fixed). Use a database user with a strong password, limited to this database.
+2. **Vercel → Add New Project →** import the GitHub repo. Leave *Root Directory* as the repo root; `vercel.json` sets the build (`npm run build`), output (`client/dist`) and function.
+3. **Environment variables** (Production): `NODE_ENV=production`, `MONGO_URI`, `BETTER_AUTH_SECRET` (a new one for production), `APP_URL=https://<your-project>.vercel.app`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `CLOUDINARY_URL`, and the OAuth pairs.
+4. **Deploy**, then open `https://<your-project>.vercel.app/health`: it should say `{"status":"ok","db":true}`.
+5. **OAuth providers:** add `https://<your-project>.vercel.app/api/auth/callback/<provider>` (Google also needs the domain under *Authorized JavaScript origins*; GitHub allows one callback per app, so create a separate production app).
+
+`APP_URL` must be the exact domain people use: email links, OAuth callbacks and the allowed origin all come from it. If you add a custom domain later, update `APP_URL` and the provider callbacks, then redeploy. Preview deployments use other URLs, so sign-in only works on the production domain.
+
 > **Cloudinary tip:** free accounts block PDF delivery by default. To preview PDFs, enable *Settings → Security → "Allow delivery of PDF and ZIP files"*.
 
 ## GraphQL API
@@ -170,6 +182,8 @@ Full schema: [`server/graphql/typeDefs.js`](server/graphql/typeDefs.js).
 ## Project structure
 
 ```
+├── api/index.js       # Vercel Function: serves the whole API
+├── vercel.json        # Vercel build, rewrites and security headers
 ├── server/
 │   ├── auth/          # Better Auth config, account-deletion cleanup
 │   ├── config/        # env validation, MongoDB connection
@@ -178,7 +192,8 @@ Full schema: [`server/graphql/typeDefs.js`](server/graphql/typeDefs.js).
 │   ├── routes/api.js  # /api: feature config, upload signatures
 │   ├── services/      # Cloudinary signing & cleanup, transactional email
 │   ├── scripts/       # db:setup, seed, db:assign-owner
-│   └── index.js       # Express + security headers + auth + GraphQL Yoga
+│   ├── app.js         # createApp(): Express + security headers + auth + GraphQL Yoga
+│   └── index.js       # local server (npm run dev / npm start)
 └── client/
     ├── public/        # favicon, app icons, manifest, social image, theme bootstrap
     └── src/
