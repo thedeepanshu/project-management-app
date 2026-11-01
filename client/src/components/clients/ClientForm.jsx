@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { ADD_CLIENT, REFRESH_ALL, UPDATE_CLIENT } from "../../graphql/documents";
 import { Button } from "../ui/Button";
 import { Field, Input } from "../ui/Field";
+import { ModalFooter } from "../ui/Modal";
 import { AvatarPicker } from "./AvatarPicker";
 import { useClientDraft } from "./useClientDraft";
 
@@ -69,14 +70,14 @@ export function ClientForm({ client, onDone, onCancel }) {
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
       <ClientFields draft={draft} />
-      <div className="flex justify-end gap-2 pt-3">
+      <ModalFooter className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" variant="brand" loading={draft.submitting} disabled={draft.photoBusy}>
           {isEdit ? "Save changes" : "Add client"}
         </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 }

@@ -10,7 +10,8 @@ import { useEffect, useId, useRef } from "react";
 // `data-autofocus` instead.
 //
 // The dialog itself never scrolls (that put the scrollbar on the rounded outer
-// edge). The header stays fixed and only the body scrolls, inset from the edge.
+// edge). The header stays fixed and only the body scrolls, inset from the edge;
+// wrap a form's buttons in ModalFooter to keep them in view too.
 // overflow-clip (not hidden) so focusing a field can't scroll the header away.
 export function Modal({ open, onClose, title, description, children, size = "md" }) {
   const ref = useRef(null);
@@ -58,11 +59,28 @@ export function Modal({ open, onClose, title, description, children, size = "md"
             </button>
           </header>
           {/* Inset by mr/mb so the scrollbar stays clear of the rounded corners. */}
-          <div className="scroll-soft mr-1.5 mb-3 min-h-0 overflow-y-auto pt-1 pr-4.5 pb-3 pl-6 sm:pr-5.5 sm:pl-7">
-            {children}
+          {/* scroll-pb: a field reached with Tab isn't left hidden behind a ModalFooter. */}
+          <div className="scroll-soft mr-1.5 mb-3 min-h-0 scroll-pb-32 overflow-y-auto pt-1 pr-4.5 pl-6 sm:pr-5.5 sm:pl-7">
+            <div className="pb-3">{children}</div>
           </div>
         </div>
       )}
     </dialog>
+  );
+}
+
+/**
+ * A form's buttons, kept in view while its fields scroll underneath on short
+ * screens. The negative margins cancel the modal body's padding, so scrolling
+ * content can't show around the edges; the fade only shows over content.
+ */
+export function ModalFooter({ className = "", children }) {
+  return (
+    <div
+      className={`sticky bottom-0 z-10 -mr-4.5 -mb-3 -ml-6 bg-surface pt-3 pr-4.5 pb-3 pl-6 sm:-mr-5.5 sm:-ml-7 sm:pr-5.5 sm:pl-7
+        before:pointer-events-none before:absolute before:inset-x-0 before:bottom-full before:h-5 before:bg-linear-to-t before:from-surface before:to-transparent ${className}`}
+    >
+      {children}
+    </div>
   );
 }

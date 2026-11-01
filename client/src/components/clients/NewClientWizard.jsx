@@ -10,6 +10,7 @@ import { ProjectFields } from "../projects/ProjectForm";
 import { useProjectDraft } from "../projects/useProjectDraft";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
+import { ModalFooter } from "../ui/Modal";
 import { ClientFields } from "./ClientForm";
 import { useClientDraft } from "./useClientDraft";
 
@@ -137,39 +138,35 @@ export function NewClientWizard({ onDone, onCancel }) {
         />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 pt-7">
+      <ModalFooter className="mt-4 flex flex-wrap items-center gap-2">
         {step === 0 ? (
           <>
             <Button variant="ghost" onClick={onCancel}>
               Cancel
             </Button>
-            <div className="ml-auto flex flex-wrap justify-end gap-2">
-              <Button variant="secondary" onClick={() => finish(false)} loading={saving === "client"} disabled={busy}>
-                Just add client
-              </Button>
-              <Button type="submit" variant="brand" disabled={busy}>
-                Next: first project <ArrowRight />
-              </Button>
-            </div>
+            <Button variant="secondary" className="ml-auto" onClick={() => finish(false)} loading={saving === "client"} disabled={busy}>
+              Just add client
+            </Button>
+            <Button type="submit" variant="brand" className="max-sm:w-full" disabled={busy}>
+              Next: first project <ArrowRight />
+            </Button>
           </>
         ) : (
           <>
             {!savedClient && (
               <Button variant="ghost" onClick={() => setStep(0)} disabled={saving !== null}>
-                <ArrowLeft /> Back
+                <ArrowLeft /> <span className="max-[340px]:sr-only">Back</span>
               </Button>
             )}
-            <div className="ml-auto flex flex-wrap justify-end gap-2">
-              <Button variant="secondary" onClick={() => finish(false)} loading={saving === "client"} disabled={busy}>
-                {savedClient ? "Add the project later" : "Skip, just add client"}
-              </Button>
-              <Button type="submit" variant="brand" loading={saving === "project"} disabled={busy || project.uploading}>
-                {project.uploading ? "Uploading…" : savedClient ? "Create project" : "Add client & project"}
-              </Button>
-            </div>
+            <Button variant="secondary" className="ml-auto" onClick={() => finish(false)} loading={saving === "client"} disabled={busy}>
+              {savedClient ? "Add the project later" : "Skip, just add client"}
+            </Button>
+            <Button type="submit" variant="brand" className="max-sm:w-full" loading={saving === "project"} disabled={busy || project.uploading}>
+              {project.uploading ? "Uploading…" : savedClient ? "Create project" : "Add client & project"}
+            </Button>
           </>
         )}
-      </div>
+      </ModalFooter>
     </form>
   );
 }

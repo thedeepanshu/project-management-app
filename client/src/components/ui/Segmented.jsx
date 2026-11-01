@@ -17,11 +17,11 @@ export function Segmented({ label, options, value, onChange, size = "md", classN
             aria-checked={active}
             title={option.title}
             onClick={() => onChange(option.value)}
-            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 font-medium whitespace-nowrap transition ${height} ${
+            className={`flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-3 font-medium whitespace-nowrap transition max-sm:gap-1 max-sm:px-1.5 max-sm:text-[13px] max-[340px]:px-1 max-[340px]:text-xs ${height} ${
               active ? "bg-surface text-ink shadow-soft ring-1 ring-line" : "text-muted hover:text-ink"
             }`}
           >
-            {option.dot && <span className={`size-2 rounded-full ${option.dot}`} />}
+            {option.dot && <span className={`size-2 shrink-0 rounded-full max-[380px]:hidden ${option.dot}`} />}
             {Icon && <Icon className="size-4" />}
             {option.label && <span className={Icon ? "max-sm:sr-only" : undefined}>{option.label}</span>}
           </button>

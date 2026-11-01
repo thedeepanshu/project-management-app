@@ -12,6 +12,7 @@ import { Avatar } from "../ui/Avatar";
 import { DatePicker } from "../ui/DatePicker";
 import { Dropdown } from "../ui/Dropdown";
 import { Field, Input, Textarea } from "../ui/Field";
+import { ModalFooter } from "../ui/Modal";
 import { Segmented } from "../ui/Segmented";
 import { Skeleton } from "../ui/States";
 import { useProjectDraft } from "./useProjectDraft";
@@ -180,14 +181,14 @@ export function ProjectForm({ project, defaultClientId, defaultStatus, onDone, o
         }
       />
 
-      <div className="flex justify-end gap-2 pt-3">
+      <ModalFooter className="flex justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
         <Button type="submit" variant="brand" loading={draft.submitting} disabled={uploading}>
           {uploading ? "Uploading…" : isEdit ? "Save changes" : "Create project"}
         </Button>
-      </div>
+      </ModalFooter>
     </form>
   );
 }
