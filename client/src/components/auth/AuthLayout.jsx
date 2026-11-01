@@ -11,7 +11,7 @@ const POINTS = [
   "Files, deadlines and priorities in one place",
 ];
 
-function ThemeButton() {
+export function ThemeButton() {
   const { theme, toggleTheme } = useTheme();
   const dark = theme === "dark";
   return (
@@ -68,7 +68,10 @@ export function AuthLayout() {
           <Outlet />
         </div>
         <p className="text-center text-xs text-subtle">
-          Protected by rate limiting and encrypted sessions.
+          Protected by rate limiting and encrypted sessions. ·{" "}
+          <Link to="/privacy" className="hover:text-ink hover:underline">
+            Privacy
+          </Link>
         </p>
       </main>
     </div>

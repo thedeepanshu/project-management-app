@@ -35,6 +35,13 @@ const router = createBrowserRouter([
       { path: "reset-password", lazy: page(() => import("./pages/auth/ResetPassword")) },
     ],
   },
+  // Public either way (Google's consent screen links here).
+  {
+    path: "privacy",
+    lazy: page(() => import("./pages/Privacy")),
+    errorElement: <RouteError />,
+    HydrateFallback: Splash,
+  },
   // The app: requires a session.
   {
     element: (

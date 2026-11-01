@@ -38,6 +38,8 @@ api.get("/config", (_req, res) => {
   res.set("Cache-Control", "no-store").json({
     auth: { providers: enabledProviders, password: { min: PASSWORD_MIN, max: PASSWORD_MAX } },
     uploads: { enabled: uploadsEnabled, maxBytes: MAX_BYTES },
+    // Shown on the privacy page: the address Twillboard's emails come from.
+    contactEmail: env.smtp.user ?? null,
     // Development-only hints for setup gaps (never sent in production).
     ...(!env.isProduction && { dev: { emailToConsole } }),
   });
