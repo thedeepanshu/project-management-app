@@ -39,10 +39,10 @@ export function Field({ label, error, hint, optional = false, action, children, 
   );
 }
 
-export function Input(props) {
-  return <input className={`${control} h-11`} {...props} />;
+export function Input({ className = "", ...props }) {
+  return <input className={`${control} h-11 ${className}`} {...props} />;
 }
 
-export function Textarea(props) {
-  return <textarea className={`${control} min-h-28 resize-y py-2.5 leading-relaxed`} {...props} />;
+export function Textarea({ className = "", ...props }) {
+  return <textarea className={`${control} min-h-28 resize-y py-2.5 leading-relaxed ${className}`} {...props} />;
 }

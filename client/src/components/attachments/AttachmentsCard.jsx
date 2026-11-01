@@ -1,13 +1,13 @@
 import { useMutation } from "@apollo/client/react";
-import { CircleAlert, Paperclip, Play, Trash2, UploadCloud, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { CircleAlert, Paperclip, Play, RotateCw, Trash2, UploadCloud, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { ADD_ATTACHMENTS, REMOVE_ATTACHMENT } from "../../graphql/documents";
 import { useAppConfig } from "../../hooks/useAppConfig";
 import { ApiError } from "../../lib/api";
 import { formatDate } from "../../lib/format";
-import { ATTACHMENT_ACCEPT, checkFileSize, formatBytes, uploadFile } from "../../lib/uploads";
+import { ATTACHMENT_ACCEPT, checkFileSize, discardUploads, formatBytes, uploadFile } from "../../lib/uploads";
 import { parseApolloError } from "../../lib/validation";
 import { ConfirmDialog } from "../ui/ConfirmDialog";
 import { Card } from "../ui/States";
@@ -67,7 +67,7 @@ function Tile({ file, onOpen, onRemove }) {
   );
 }
 
-function UploadRow({ upload, onCancel }) {
+function UploadRow({ upload, onCancel, onRetry }) {
   return (
     <li className="flex items-center gap-3 rounded-xl bg-elevated px-3 py-2.5 ring-1 ring-line">
       <UploadCloud className={`size-4 shrink-0 ${upload.error ? "text-red-500" : "text-twill-500"}`} />
@@ -84,6 +84,16 @@ function UploadRow({ upload, onCancel }) {
           </div>
         )}
       </div>
+      {upload.error && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-medium text-twill-700 ring-1 ring-twill-500/30 transition hover:bg-twill-500/10 dark:text-twill-300"
+          aria-label={`Retry ${upload.name}`}
+        >
+          <RotateCw className="size-3.5" /> Retry
+        </button>
+      )}
       <button
         type="button"
         onClick={onCancel}
@@ -109,6 +119,21 @@ export function AttachmentsCard({ project }) {
     refetchQueries: ["GetProjects"],
   });
 
+  // Leaving the page: a file that uploaded but was never saved on the project
+  // (its save failed, and it wasn't retried or dismissed) would be orphaned.
+  const uploadsRef = useRef(uploads);
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    uploadsRef.current = uploads;
+  }, [uploads]);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      discardUploads(uploadsRef.current.filter((upload) => upload.error && upload.uploaded).map((upload) => upload.uploaded));
+    };
+  }, []);
+
   const files = project.attachments;
   const canUpload = uploadConfig.enabled;
   if (!canUpload && files.length === 0) return null;
@@ -117,23 +142,45 @@ export function AttachmentsCard({ project }) {
     setUploads((list) => list.map((upload) => (upload.id === id ? { ...upload, ...patch } : upload)));
   const dropUpload = (id) => setUploads((list) => list.filter((upload) => upload.id !== id));
 
-  async function startUpload(file) {
+  function startUpload(file) {
     const id = crypto.randomUUID();
     const controller = new AbortController();
-    setUploads((list) => [...list, { id, name: file.name, progress: 0, error: null, controller }]);
+    setUploads((list) => [...list, { id, name: file.name, progress: 0, error: null, controller, file, uploaded: null }]);
+    run({ id, file, uploaded: null }, controller);
+  }
 
+  /** Uploads the file (unless that already worked) and saves it on the project. */
+  async function run({ id, file, uploaded }, controller) {
     try {
-      const uploaded = await uploadFile(file, "attachment", {
-        onProgress: (progress) => patchUpload(id, { progress }),
-        signal: controller.signal,
-      });
+      if (!uploaded) {
+        uploaded = await uploadFile(file, "attachment", {
+          onProgress: (progress) => patchUpload(id, { progress }),
+          signal: controller.signal,
+        });
+        // If saving fails, a retry only needs to save; the file is already stored.
+        patchUpload(id, { uploaded });
+      }
       await addAttachments({ variables: { projectId: project.id, attachments: [uploaded] } });
       dropUpload(id);
     } catch (error) {
       if (error.name === "AbortError") return dropUpload(id);
+      // Failed after the page was left: nobody can retry it, so clean up.
+      if (unmountedRef.current) return discardUploads([uploaded]);
       // Upload failures carry their own message; save failures come from GraphQL.
       patchUpload(id, { error: error instanceof ApiError ? error.message : parseApolloError(error).message });
     }
+  }
+
+  function retry(upload) {
+    const controller = new AbortController();
+    patchUpload(upload.id, { error: null, progress: upload.uploaded ? 1 : 0, controller });
+    run(upload, controller);
+  }
+
+  function dismiss(upload) {
+    // Stored but never saved on the project: delete it.
+    if (upload.uploaded) discardUploads([upload.uploaded]);
+    dropUpload(upload.id);
   }
 
   async function handleFiles(fileList) {
@@ -218,7 +265,8 @@ export function AttachmentsCard({ project }) {
             <UploadRow
               key={upload.id}
               upload={upload}
-              onCancel={() => (upload.error ? dropUpload(upload.id) : upload.controller.abort())}
+              onCancel={() => (upload.error ? dismiss(upload) : upload.controller.abort())}
+              onRetry={() => retry(upload)}
             />
           ))}
         </ul>

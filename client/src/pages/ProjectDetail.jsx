@@ -221,6 +221,7 @@ export default function ProjectDetail() {
         onConfirm={handleDelete}
         title="Delete this project?"
         confirmLabel="Delete project"
+        confirmText={project.name}
       >
         <strong className="text-ink">{project.name}</strong> will be permanently deleted. This can’t be undone.
       </ConfirmDialog>

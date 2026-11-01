@@ -1,12 +1,19 @@
-// Seeds the database with a realistic sample portfolio of clients and projects.
-//   npm run seed            → only seeds when the database is empty
-//   npm run seed -- --reset → wipes clients & projects first, then seeds
+// Seeds a user's workspace with a realistic sample portfolio of clients and projects.
+//   npm run seed -- you@example.com          → only seeds when that workspace is empty
+//   npm run seed -- you@example.com --reset  → wipes that user's clients & projects first
+
+import mongoose from "mongoose";
 
 import { connectDB, disconnectDB } from "../config/db.js";
 import Client from "../models/Client.js";
 import Project from "../models/Project.js";
 
 const reset = process.argv.includes("--reset");
+const email = process.argv.slice(2).find((arg) => !arg.startsWith("--"))?.trim().toLowerCase();
+if (!email) {
+  console.error("Usage: npm run seed -- <email of an existing account> [--reset]");
+  process.exit(1);
+}
 
 const daysFromNow = (days) => {
   const date = new Date();
@@ -69,11 +76,18 @@ const projects = [
 await connectDB();
 
 try {
+  const user = await mongoose.connection.db.collection("user").findOne({ email });
+  if (!user) {
+    console.error(`✖ No account with the email ${email}. Sign up first, then run this again.`);
+    process.exit(1);
+  }
+  const ownerId = user._id.toString();
+
   if (reset) {
-    await Promise.all([Project.deleteMany({}), Client.deleteMany({})]);
-    console.log("Cleared existing clients and projects.");
-  } else if ((await Client.estimatedDocumentCount()) > 0) {
-    console.log("Database already has data — skipping. Use `npm run seed -- --reset` to start over.");
+    await Promise.all([Project.deleteMany({ ownerId }), Client.deleteMany({ ownerId })]);
+    console.log(`Cleared ${email}'s clients and projects.`);
+  } else if (await Client.exists({ ownerId })) {
+    console.log("This workspace already has data — skipping. Add --reset to start over.");
     process.exit(0);
   }
 
@@ -81,6 +95,7 @@ try {
   const createdClients = await Client.insertMany(
     clients.map(({ key: _key, ...client }, index) => ({
       ...client,
+      ownerId,
       createdAt: daysFromNow(-(100 - index * 9)),
     })),
     { timestamps: false }
@@ -92,6 +107,7 @@ try {
       const createdAt = daysFromNow(-createdAgo);
       return {
         ...project,
+        ownerId,
         clientId: clientIdByKey[client],
         dueDate: due === null ? undefined : daysFromNow(due),
         createdAt,
@@ -101,7 +117,7 @@ try {
     { timestamps: false }
   );
 
-  console.log(`Seeded ${createdClients.length} clients and ${projects.length} projects.`);
+  console.log(`Seeded ${createdClients.length} clients and ${projects.length} projects for ${email}.`);
 } finally {
   await disconnectDB();
 }

@@ -10,6 +10,12 @@ export function badInput(message, fields) {
   });
 }
 
+export function unauthenticated() {
+  return new GraphQLError("Please sign in to continue.", {
+    extensions: { code: "UNAUTHENTICATED", http: { status: 401 } },
+  });
+}
+
 export function notFound(entity) {
   return new GraphQLError(`${entity} not found`, {
     extensions: { code: "NOT_FOUND" },
@@ -40,7 +46,8 @@ export function toGraphQLError(error) {
   }
 
   if (error?.code === 11000) {
-    const field = Object.keys(error.keyValue ?? {})[0] ?? "field";
+    // Compound keys include ownerId; report the field the user actually typed.
+    const field = Object.keys(error.keyValue ?? {}).find((key) => key !== "ownerId") ?? "field";
     return badInput(`A record with this ${field} already exists`, {
       [field]: `This ${field} is already in use`,
     });

@@ -27,6 +27,8 @@ const AttachmentSchema = new mongoose.Schema(
 
 const ProjectSchema = new mongoose.Schema(
   {
+    // The user (auth account) this project belongs to. Every query filters on it.
+    ownerId: { type: String, required: true },
     name: {
       type: String,
       required: [true, "Project name is required"],
@@ -70,5 +72,8 @@ const ProjectSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Every project list is "this user's projects, newest first".
+ProjectSchema.index({ ownerId: 1, createdAt: -1 });
 
 export default mongoose.model("Project", ProjectSchema);

@@ -37,6 +37,7 @@ export function DeleteClientDialog({ client, onClose, onDeleted }) {
       onConfirm={handleDelete}
       title="Delete this client?"
       confirmLabel="Delete client"
+      confirmText={client?.name}
     >
       {client && (
         <>

@@ -5,6 +5,10 @@ import { useEffect, useId, useRef } from "react";
 // and top-layer stacking come from the browser. Children only mount while open,
 // so forms inside always start fresh.
 //
+// Opening the dialog moves focus to its first focusable element (the close
+// button), overriding React's autoFocus. Mark the field to focus with
+// `data-autofocus` instead.
+//
 // The dialog itself never scrolls (that put the scrollbar on the rounded outer
 // edge). The header stays fixed and only the body scrolls, inset from the edge.
 // overflow-clip (not hidden) so focusing a field can't scroll the header away.
@@ -14,7 +18,10 @@ export function Modal({ open, onClose, title, description, children, size = "md"
 
   useEffect(() => {
     const dialog = ref.current;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      dialog.showModal();
+      dialog.querySelector("[data-autofocus]")?.focus();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
